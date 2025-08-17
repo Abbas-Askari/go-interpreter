@@ -20,8 +20,27 @@ func NewParser(tokens []token.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() Expression {
-	return p.Expression()
+func (p *Parser) Parse() []Statement {
+	statements := []Statement{}
+	for p.index < len(p.tokens) {
+		var statement Statement
+
+		if p.consumeIfExists(token.PRINT) {
+			statement = p.printStatement()
+		} else {
+			statement = ExpressionStatement{expression: p.Expression()}
+		}
+
+		statements = append(statements, statement)
+	}
+	return statements
+}
+
+func (p *Parser) printStatement() Statement {
+	exp := p.Expression()
+	return PrintStatement{
+		expression: exp,
+	}
 }
 
 func (p *Parser) move() {
@@ -39,8 +58,18 @@ func (p *Parser) consumeIfExists(t token.TokenType) bool {
 	return false
 }
 
+func (p *Parser) consume(t token.TokenType, err string) {
+	if p.currentToken.Type == t {
+		p.move()
+	} else {
+		panic(err)
+	}
+}
+
 func (p *Parser) Expression() Expression {
-	return p.BinaryExpression()
+	exp := p.BinaryExpression()
+	p.consume(token.SEMICOLON, "Expected a semicolon")
+	return exp
 }
 
 func (p *Parser) BinaryExpression() Expression {
@@ -74,19 +103,21 @@ func (p *Parser) LiteralExpression() Expression {
 	return exp
 }
 
-func Emit(ast Expression) ([]op.OpCode, []object.Object) {
+func Emit(statements []Statement) ([]op.OpCode, []object.Object) {
 	stream := []op.OpCode{}
 	constants := []object.Object{}
 
-	ast.Emit(
-		func(oc op.OpCode) {
-			stream = append(stream, oc)
-		},
-		func(o object.Object) int {
-			constants = append(constants, o)
-			return len(constants) - 1
-		},
-	)
+	for _, statement := range statements {
+		statement.Emit(
+			func(oc op.OpCode) {
+				stream = append(stream, oc)
+			},
+			func(o object.Object) int {
+				constants = append(constants, o)
+				return len(constants) - 1
+			},
+		)
+	}
 
 	return stream, constants
 }

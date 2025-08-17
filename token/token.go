@@ -32,6 +32,8 @@ const (
 	LET      = "LET"
 
 	NUMBER = "NUMBER"
+
+	PRINT = "PRINT"
 )
 
 type Token struct {

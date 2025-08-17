@@ -19,6 +19,7 @@ const (
 	OpJump
 	OpJumpNotTruthy
 	OpNull
+	OpPrint
 )
 
 func (o OpCode) String() string {
@@ -39,6 +40,7 @@ func (o OpCode) String() string {
 		OpJump:          "OpJump",
 		OpJumpNotTruthy: "OpJumpNotTruthy",
 		OpNull:          "OpNull",
+		OpPrint:         "OpPrint",
 	}
 	return opNames[o]
 }

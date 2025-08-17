@@ -10,21 +10,30 @@ func Tokenize(input string) []token.Token {
 	// In a real lexer, you would parse the input string into tokens.
 
 	mapping := map[string]token.TokenType{
-		"+":   token.PLUS,
-		"-":   token.MINUS,
-		"*":   token.MULTIPLY,
-		"/":   token.SLASH,
-		";":   token.SEMICOLON,
-		"(":   token.LPAREN,
-		")":   token.RPAREN,
-		"fun": token.FUNCTION,
+		"+":     token.PLUS,
+		"-":     token.MINUS,
+		"*":     token.MULTIPLY,
+		"/":     token.SLASH,
+		";":     token.SEMICOLON,
+		"(":     token.LPAREN,
+		")":     token.RPAREN,
+		"fun":   token.FUNCTION,
+		"print": token.PRINT,
 	}
 
 	tokens := []token.Token{}
 	i := 0
 	for i != len(input) {
+		foundFromMapping := false
 		for str, tokenType := range mapping {
-			if i+len(str) >= len(input) || input[i:i+len(str)] != str {
+
+			if i+len(str) > len(input) {
+				continue
+			}
+
+			test := input[i : i+len(str)]
+
+			if test != str {
 				continue
 			}
 
@@ -33,6 +42,11 @@ func Tokenize(input string) []token.Token {
 				Literal: str,
 			})
 			i += len(str)
+			foundFromMapping = true
+			break
+		}
+
+		if foundFromMapping {
 			continue
 		}
 
@@ -40,9 +54,13 @@ func Tokenize(input string) []token.Token {
 
 		if '0' <= c && c <= '9' {
 			number := ""
-			for '0' <= c && c <= '9' {
+			seenDot := false
+			for '0' <= c && c <= '9' || (!seenDot && c == '.') {
 				number = number + string(c)
 				i++
+				if c == '.' {
+					seenDot = true
+				}
 				if i < len(input) {
 					c = input[i]
 				} else {
@@ -58,12 +76,12 @@ func Tokenize(input string) []token.Token {
 			continue
 		}
 
-		if c == ' ' {
+		if c == ' ' || c == '\n' {
 			i++
 			continue
 		}
 
-		panic(fmt.Errorf("UNKNOWN TOKEN: %v", i))
+		panic(fmt.Errorf("UNKNOWN TOKEN: '%v'", string(c)))
 	}
 	return tokens
 }
