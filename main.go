@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Abbas-Askari/interpreter-v2/compiler"
 	"Abbas-Askari/interpreter-v2/lexer"
 	"Abbas-Askari/interpreter-v2/parser"
 	"Abbas-Askari/interpreter-v2/vm"
@@ -27,7 +28,9 @@ func main() {
 	statements := p.Parse()
 	fmt.Println(statements)
 
-	stream, constants := parser.Emit(statements)
+	compiler := compiler.NewCompiler()
+
+	stream, constants := compiler.Compile(statements)
 	fmt.Println(stream, constants)
 
 	parser.Decompile(stream, constants)

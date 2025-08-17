@@ -1,32 +1,40 @@
 package parser
 
 import (
-	"Abbas-Askari/interpreter-v2/object"
+	"Abbas-Askari/interpreter-v2/interfaces"
 	"Abbas-Askari/interpreter-v2/op"
+	"go/token"
 )
 
 type Statement interface {
-	Emit(func(op.OpCode), func(object.Object) int)
+	Emit(p interfaces.ICompiler)
 }
 
 type PrintStatement struct {
 	expression Expression
 }
 
-func (p PrintStatement) Emit(emit func(op.OpCode), addConst func(object.Object) int) {
-	p.expression.Emit(emit, addConst)
-	emit(op.OpPrint)
+func (ps PrintStatement) Emit(c interfaces.ICompiler) {
+	ps.expression.Emit(c)
+	c.Emit(op.OpPrint)
 }
 
 type ExpressionStatement struct {
 	expression Expression
 }
 
-func (e ExpressionStatement) Emit(emit func(op.OpCode), addConst func(object.Object) int) {
-	e.expression.Emit(emit, addConst)
-	emit(op.OpPop)
+func (e ExpressionStatement) Emit(c interfaces.ICompiler) {
+	e.expression.Emit(c)
+	c.Emit(op.OpPop)
 }
 
 type DeclarationStatement struct {
-	expression Expression
+	name        token.Token
+	expression  Expression
+	globalIndex int
+}
+
+func (d *DeclarationStatement) Emit(c interfaces.ICompiler) {
+	d.expression.Emit(c)
+	c.Emit(op.OpPop)
 }

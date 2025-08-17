@@ -1,8 +1,6 @@
 package parser
 
 import (
-	"Abbas-Askari/interpreter-v2/object"
-	"Abbas-Askari/interpreter-v2/op"
 	"Abbas-Askari/interpreter-v2/token"
 )
 
@@ -101,23 +99,4 @@ func (p *Parser) LiteralExpression() Expression {
 	}
 	p.move()
 	return exp
-}
-
-func Emit(statements []Statement) ([]op.OpCode, []object.Object) {
-	stream := []op.OpCode{}
-	constants := []object.Object{}
-
-	for _, statement := range statements {
-		statement.Emit(
-			func(oc op.OpCode) {
-				stream = append(stream, oc)
-			},
-			func(o object.Object) int {
-				constants = append(constants, o)
-				return len(constants) - 1
-			},
-		)
-	}
-
-	return stream, constants
 }

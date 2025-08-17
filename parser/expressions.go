@@ -2,6 +2,7 @@ package parser
 
 import (
 	"Abbas-Askari/interpreter-v2/colors"
+	"Abbas-Askari/interpreter-v2/interfaces"
 	"Abbas-Askari/interpreter-v2/object"
 	"Abbas-Askari/interpreter-v2/op"
 	"Abbas-Askari/interpreter-v2/token"
@@ -18,7 +19,7 @@ const (
 
 type Expression interface {
 	GetType() ExpressionType
-	Emit(func(op.OpCode), func(object.Object) int)
+	Emit(p interfaces.ICompiler)
 }
 
 type BinaryExpression struct {
@@ -35,16 +36,16 @@ func (b *BinaryExpression) String() string {
 	return fmt.Sprintf("%v(%v %v %v)", colors.Colorize(BINARY_EXPRESSION, colors.BLUE), b.left, b.operand, b.right)
 }
 
-func (b *BinaryExpression) Emit(emit func(op.OpCode), addConst func(object.Object) int) {
-	b.left.Emit(emit, addConst)
-	b.right.Emit(emit, addConst)
+func (b *BinaryExpression) Emit(c interfaces.ICompiler) {
+	b.left.Emit(c)
+	b.right.Emit(c)
 	mapping := map[token.TokenType]op.OpCode{
 		token.PLUS:     op.OpAdd,
 		token.MINUS:    op.OpSub,
 		token.SLASH:    op.OpDiv,
 		token.MULTIPLY: op.OpMul,
 	}
-	emit(mapping[b.operand.Type])
+	c.Emit(mapping[b.operand.Type])
 }
 
 type LiteralExpression struct {
@@ -59,14 +60,14 @@ func (l *LiteralExpression) String() string {
 	return fmt.Sprintf("%v(%v)", colors.Colorize(LITERAL_EXPRESSION, colors.BLUE), l.token)
 }
 
-func (l *LiteralExpression) Emit(emit func(op.OpCode), addConstant func(object.Object) int) {
-	emit(op.OpConstant)
+func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
+	c.Emit(op.OpConstant)
 	value, err := strconv.ParseFloat(l.token.Literal, 64)
 	if err != nil {
 		panic("This shouldn't have happened! Lexer is probably broken")
 	}
-	index := addConstant(object.Number{
+	index := c.AddConstant(object.Number{
 		Value: value,
 	})
-	emit(op.OpCode(index))
+	c.Emit(op.OpCode(index))
 }
