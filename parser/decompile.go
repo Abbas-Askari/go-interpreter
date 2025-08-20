@@ -12,7 +12,7 @@ func Decompile(stream []op.OpCode, constants []object.Object) {
 	for i < len(stream) {
 		current := stream[i]
 
-		if current == op.OpConstant {
+		if current == op.OpConstant || current == op.OpSetGlobal {
 			fmt.Printf("%04d %v %d\n", i, current, stream[i+1])
 			i += 2
 			continue

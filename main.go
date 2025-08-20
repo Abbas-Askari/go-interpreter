@@ -26,7 +26,9 @@ func main() {
 
 	p := parser.NewParser(tokens)
 	statements := p.Parse()
+	fmt.Println("------------AST------------")
 	fmt.Println(statements)
+	fmt.Println("---------------------------")
 
 	compiler := compiler.NewCompiler()
 

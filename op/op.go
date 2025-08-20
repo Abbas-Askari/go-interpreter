@@ -20,6 +20,8 @@ const (
 	OpJumpNotTruthy
 	OpNull
 	OpPrint
+	OpSetGlobal
+	OpLoadGlobal
 )
 
 func (o OpCode) String() string {
@@ -41,6 +43,8 @@ func (o OpCode) String() string {
 		OpJumpNotTruthy: "OpJumpNotTruthy",
 		OpNull:          "OpNull",
 		OpPrint:         "OpPrint",
+		OpSetGlobal:     "OpSetGlobal",
+		OpLoadGlobal:    "OpLoadGlobal",
 	}
 	return opNames[o]
 }

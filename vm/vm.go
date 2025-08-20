@@ -29,11 +29,18 @@ func (vm *VM) Pop() object.Object {
 	return top
 }
 
+func (vm *VM) Peek() object.Object {
+	top := vm.stack[len(vm.stack)-1]
+	return top
+}
+
 func (vm *VM) Push(o object.Object) {
 	vm.stack = append(vm.stack, o)
 }
 
 func (vm *VM) Run() {
+
+	globals := []object.Object{}
 
 	for vm.ip != len(vm.bytecode) {
 		opcode := vm.bytecode[vm.ip]
@@ -68,12 +75,26 @@ func (vm *VM) Run() {
 			o := vm.Pop()
 			fmt.Println(o)
 
+		case op.OpSetGlobal:
+			index := int(vm.bytecode[vm.ip+1])
+			vm.ip++
+			if index >= len(globals) {
+				globals = append(globals, vm.Peek())
+			} else {
+				globals[index] = vm.Peek()
+			}
+
+		case op.OpLoadGlobal:
+			index := int(vm.bytecode[vm.ip+1])
+			vm.ip++
+			vm.Push(globals[index])
+
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)
 
 		}
 
-		// fmt.Println(vm.stack)
+		// fmt.Println(globals)
 
 		vm.ip++
 	}

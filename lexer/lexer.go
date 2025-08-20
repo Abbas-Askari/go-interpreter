@@ -3,6 +3,7 @@ package lexer
 import (
 	"Abbas-Askari/interpreter-v2/token"
 	"fmt"
+	"unicode"
 )
 
 func Tokenize(input string) []token.Token {
@@ -16,9 +17,11 @@ func Tokenize(input string) []token.Token {
 		"/":     token.SLASH,
 		";":     token.SEMICOLON,
 		"(":     token.LPAREN,
+		"=":     token.ASSIGN,
 		")":     token.RPAREN,
 		"fun":   token.FUNCTION,
 		"print": token.PRINT,
+		"let":   token.LET,
 	}
 
 	tokens := []token.Token{}
@@ -71,6 +74,26 @@ func Tokenize(input string) []token.Token {
 			tokens = append(tokens, token.Token{
 				Type:    "NUMBER",
 				Literal: number,
+			})
+
+			continue
+		}
+
+		if unicode.IsLetter(rune(c)) || rune(c) == '_' {
+			str := ""
+			for unicode.IsLetter(rune(c)) || unicode.IsDigit(rune(c)) || rune(c) == '_' {
+				str = str + string(c)
+				i++
+				if i < len(input) {
+					c = input[i]
+				} else {
+					break
+				}
+			}
+
+			tokens = append(tokens, token.Token{
+				Type:    token.IDENTIFIER,
+				Literal: str,
 			})
 
 			continue

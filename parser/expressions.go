@@ -13,12 +13,14 @@ import (
 type ExpressionType string
 
 const (
-	BINARY_EXPRESSION  = "BINARY_EXPRESSION"
-	LITERAL_EXPRESSION = "LITERAL_EXPRESSION"
+	BINARY_EXPRESSION     = "BINARY_EXPRESSION"
+	LITERAL_EXPRESSION    = "LITERAL_EXPRESSION"
+	IDENTIFIER_EXPRESSION = "IDENTIFIER_EXPRESSION"
+	ASSIGNMENT_EXPRESSION = "ASSIGNMENT_EXPRESSION"
 )
 
 type Expression interface {
-	GetType() ExpressionType
+	// GetType() ExpressionType
 	Emit(p interfaces.ICompiler)
 }
 
@@ -70,4 +72,38 @@ func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
 		Value: value,
 	})
 	c.Emit(op.OpCode(index))
+}
+
+type IdentifierExpression struct {
+	token token.Token
+}
+
+func (l *IdentifierExpression) GetType() ExpressionType {
+	return IDENTIFIER_EXPRESSION
+}
+
+func (l *IdentifierExpression) String() string {
+	return fmt.Sprintf("%v(%v)", colors.Colorize(IDENTIFIER_EXPRESSION, colors.BLUE), l.token)
+}
+
+func (l *IdentifierExpression) Emit(c interfaces.ICompiler) {
+	c.GetGlobal(l.token)
+}
+
+type AssignmentExpression struct {
+	assignee   IdentifierExpression
+	assignment Expression
+}
+
+// func (l *AssignmentExpression) GetType() ExpressionType {
+// 	return IDENTIFIER_EXPRESSION
+// }
+
+func (l *AssignmentExpression) String() string {
+	return fmt.Sprintf("%v(%v = %v)", colors.Colorize(ASSIGNMENT_EXPRESSION, colors.BLUE), l.assignee, l.assignment)
+}
+
+func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
+	l.assignment.Emit(c)
+	c.SetGlobal(l.assignee.token)
 }

@@ -31,7 +31,8 @@ const (
 	FUNCTION = "FUNCTION"
 	LET      = "LET"
 
-	NUMBER = "NUMBER"
+	NUMBER     = "NUMBER"
+	IDENTIFIER = "IDENTIFIER"
 
 	PRINT = "PRINT"
 )
@@ -43,5 +44,5 @@ type Token struct {
 }
 
 func (t Token) String() string {
-	return fmt.Sprintf("<%v>", colors.Colorize(t.Literal, colors.GREEN))
+	return fmt.Sprintf("<%v: %v>", colors.Colorize(string(t.Type), colors.GREEN), colors.Colorize(t.Literal, colors.GREEN))
 }

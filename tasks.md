@@ -3,10 +3,15 @@
 - [x] Change the single expression parsing nature to list of statements parsing nature
   - [x] Change to list of statements
   - [x] Add print statement
+- [x] Add seperate compiler from the parser
 - add string support
   - in lexer to define string literals
   - in objects and allow operations on strings
-- Add global variables
+- [ ] Add global variables
+  - [x] declaration statements
+  - [x] assignment expressions
+  - [x] OpLoadGlobal & OpSetGlobal
+  - [ ] Scopes and local variables
 - add input statement `input x` will write the user input to x
 - add if statements
 - add loops

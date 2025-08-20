@@ -23,10 +23,22 @@ func (p *Parser) Parse() []Statement {
 	for p.index < len(p.tokens) {
 		var statement Statement
 
-		if p.consumeIfExists(token.PRINT) {
+		if p.consumeIfExists(token.LET) {
+			name := p.currentToken
+			p.move()
+			var exp Expression = &LiteralExpression{}
+			if p.consumeIfExists(token.ASSIGN) {
+				exp = p.Expression()
+			}
+			statement = &DeclarationStatement{
+				name: name, expression: exp,
+			}
+			p.consume(token.SEMICOLON, "Expected a semicolon")
+		} else if p.consumeIfExists(token.PRINT) {
 			statement = p.printStatement()
 		} else {
 			statement = ExpressionStatement{expression: p.Expression()}
+			p.consume(token.SEMICOLON, "Expected a semicolon")
 		}
 
 		statements = append(statements, statement)
@@ -36,6 +48,7 @@ func (p *Parser) Parse() []Statement {
 
 func (p *Parser) printStatement() Statement {
 	exp := p.Expression()
+	p.consume(token.SEMICOLON, "Expected a semicolon")
 	return PrintStatement{
 		expression: exp,
 	}
@@ -66,7 +79,13 @@ func (p *Parser) consume(t token.TokenType, err string) {
 
 func (p *Parser) Expression() Expression {
 	exp := p.BinaryExpression()
-	p.consume(token.SEMICOLON, "Expected a semicolon")
+
+	if assignee, ok := exp.(*IdentifierExpression); ok && p.consumeIfExists(token.ASSIGN) {
+		exp = &AssignmentExpression{
+			assignee:   *assignee,
+			assignment: p.Expression(),
+		}
+	}
 	return exp
 }
 
@@ -90,8 +109,17 @@ func (p *Parser) BinaryExpression() Expression {
 }
 
 func (p *Parser) LiteralExpression() Expression {
+	if p.currentToken.Type == token.IDENTIFIER {
+		exp := &IdentifierExpression{
+			token: p.currentToken,
+		}
+		p.move()
+		return exp
+	}
+
 	if p.currentToken.Type != token.NUMBER {
-		panic("Expected to be a number")
+		// _ := fmt.Errorf("Unknown token: %v", p.currentToken)
+		panic("Error")
 	}
 
 	exp := &LiteralExpression{
