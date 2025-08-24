@@ -20,6 +20,17 @@ func (b Boolean) Div(o Object) Object {
 	panic("Cannot add booleans")
 }
 
-func (b Boolean) GetTruthy(o Object) Boolean {
+func (b Boolean) GetTruthy() Boolean {
 	return b
+}
+
+func (b Boolean) String() string {
+	if b.Value {
+		return "true"
+	}
+	return "false"
+}
+
+func (b Boolean) Type() ObjectType {
+	return BOOLEAN
 }

@@ -14,6 +14,9 @@ const (
 	OpEqual
 	OpNotEqual
 	OpGreaterThan
+	OpLessThan
+	OpGreaterEqual
+	OpLessEqual
 	OpMinus
 	OpBang
 	OpJump

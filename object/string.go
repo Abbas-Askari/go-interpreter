@@ -10,6 +10,10 @@ func (b String) String() string {
 	return b.Value
 }
 
+func (b String) Type() ObjectType {
+	return STRING
+}
+
 func (b String) Add(o Object) Object {
 	return String{Value: b.Value + fmt.Sprint(o)}
 }

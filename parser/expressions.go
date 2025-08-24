@@ -42,10 +42,16 @@ func (b *BinaryExpression) Emit(c interfaces.ICompiler) {
 	b.left.Emit(c)
 	b.right.Emit(c)
 	mapping := map[token.TokenType]op.OpCode{
-		token.PLUS:     op.OpAdd,
-		token.MINUS:    op.OpSub,
-		token.SLASH:    op.OpDiv,
-		token.MULTIPLY: op.OpMul,
+		token.PLUS:          op.OpAdd,
+		token.MINUS:         op.OpSub,
+		token.SLASH:         op.OpDiv,
+		token.MULTIPLY:      op.OpMul,
+		token.EQUAL_EQUAL:   op.OpEqual,
+		token.NOT_EQUAL:     op.OpNotEqual,
+		token.GREATER:       op.OpGreaterThan,
+		token.LESS:          op.OpLessThan,
+		token.GREATER_EQUAL: op.OpGreaterEqual,
+		token.LESS_EQUAL:    op.OpLessEqual,
 	}
 	c.Emit(mapping[b.operand.Type])
 }

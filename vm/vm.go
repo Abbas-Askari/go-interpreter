@@ -120,6 +120,25 @@ func (vm *VM) Run() {
 				vm.ip += jumpLength
 			}
 
+		case op.OpEqual:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.Equal(right, left))
+		case op.OpNotEqual:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.NotEqual(right, left))
+		case op.OpGreaterThan:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.Greater(right, left))
+		case op.OpLessThan:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.Less(right, left))
+		case op.OpGreaterEqual:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.GreaterOrEqual(right, left))
+		case op.OpLessEqual:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.LessOrEqual(right, left))
+
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)
 

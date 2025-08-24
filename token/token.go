@@ -8,37 +8,45 @@ import (
 type TokenType string
 
 const (
-	ILLEGAL = "ILLEGAL"
-	EOF     = "EOF"
+	ILLEGAL TokenType = "ILLEGAL"
+	EOF     TokenType = "EOF"
 
-	IDENT = "IDENT" // add, foobar, x, y, ...
-	INT   = "INT"   // 1343456
+	IDENT TokenType = "IDENT" // add, foobar, x, y, ...
+	INT   TokenType = "INT"   // 1343456
 
-	ASSIGN   = "="
-	PLUS     = "+"
-	MINUS    = "-"
-	MULTIPLY = "*"
-	SLASH    = "/"
+	ASSIGN   TokenType = "="
+	MULTIPLY TokenType = "*"
+	SLASH    TokenType = "/"
+	PLUS     TokenType = "+"
+	MINUS    TokenType = "-"
+	NOT      TokenType = "!"
 
-	COMMA     = ","
-	SEMICOLON = ";"
+	COMMA     TokenType = ","
+	SEMICOLON TokenType = ";"
 
-	LPAREN = "("
-	RPAREN = ")"
-	LBRACE = "{"
-	RBRACE = "}"
+	EQUAL_EQUAL   TokenType = "=="
+	NOT_EQUAL     TokenType = "!="
+	LESS_EQUAL    TokenType = "<="
+	GREATER_EQUAL TokenType = ">="
+	LESS          TokenType = "<"
+	GREATER       TokenType = ">"
 
-	FUNCTION = "FUNCTION"
-	LET      = "LET"
+	LPAREN TokenType = "("
+	RPAREN TokenType = ")"
+	LBRACE TokenType = "{"
+	RBRACE TokenType = "}"
 
-	NUMBER     = "NUMBER"
-	STRING     = "STRING"
-	IDENTIFIER = "IDENTIFIER"
+	FUNCTION TokenType = "FUNCTION"
+	LET      TokenType = "LET"
 
-	PRINT = "PRINT"
-	IF    = "IF"
-	FOR   = "FOR"
-	ELSE  = "ELSE"
+	NUMBER     TokenType = "NUMBER"
+	STRING     TokenType = "STRING"
+	IDENTIFIER TokenType = "IDENTIFIER"
+
+	PRINT TokenType = "PRINT"
+	IF    TokenType = "IF"
+	FOR   TokenType = "FOR"
+	ELSE  TokenType = "ELSE"
 )
 
 type Token struct {

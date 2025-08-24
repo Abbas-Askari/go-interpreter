@@ -21,6 +21,7 @@
 - [x] Add numbers
 - [x] Add Nil
 - [x] Add Strings
+- [x] Add Boolean (In lox code)
 - [ ] Add Arrays
 - [ ] Add Maps
 - [ ] Unify operation in Object module.

@@ -2,7 +2,6 @@ package parser
 
 import (
 	"Abbas-Askari/interpreter-v2/token"
-	"fmt"
 )
 
 type Parser struct {
@@ -90,10 +89,12 @@ func (p *Parser) move() {
 	}
 }
 
-func (p *Parser) consumeIfExists(t token.TokenType) bool {
-	if p.currentToken.Type == t {
-		p.move()
-		return true
+func (p *Parser) consumeIfExists(types ...token.TokenType) bool {
+	for _, t := range types {
+		if p.currentToken.Type == t {
+			p.move()
+			return true
+		}
 	}
 	return false
 }
@@ -104,55 +105,4 @@ func (p *Parser) consume(t token.TokenType, err string) {
 	} else {
 		panic(err)
 	}
-}
-
-func (p *Parser) Expression() Expression {
-	exp := p.BinaryExpression()
-
-	if assignee, ok := exp.(*IdentifierExpression); ok && p.consumeIfExists(token.ASSIGN) {
-		exp = &AssignmentExpression{
-			assignee:   *assignee,
-			assignment: p.Expression(),
-		}
-	}
-	return exp
-}
-
-func (p *Parser) BinaryExpression() Expression {
-	left := p.LiteralExpression()
-
-	operand := p.currentToken
-	hasOperand := p.consumeIfExists(token.PLUS) || p.consumeIfExists(token.MINUS) || p.consumeIfExists(token.SLASH) || p.consumeIfExists(token.MULTIPLY)
-	for hasOperand {
-		right := p.LiteralExpression()
-		left = &BinaryExpression{
-			left:    left,
-			operand: operand,
-			right:   right,
-		}
-		operand = p.currentToken
-		hasOperand = p.consumeIfExists(token.PLUS) || p.consumeIfExists(token.MINUS) || p.consumeIfExists(token.SLASH) || p.consumeIfExists(token.MULTIPLY)
-	}
-
-	return left
-}
-
-func (p *Parser) LiteralExpression() Expression {
-	if p.currentToken.Type == token.IDENTIFIER {
-		exp := &IdentifierExpression{
-			token: p.currentToken,
-		}
-		p.move()
-		return exp
-	}
-
-	if p.currentToken.Type == token.NUMBER || p.currentToken.Type == token.STRING {
-		exp := &LiteralExpression{
-			token: p.currentToken,
-		}
-		p.move()
-		return exp
-	}
-
-	panic(fmt.Errorf("Unknown token: %v", p.currentToken))
 }

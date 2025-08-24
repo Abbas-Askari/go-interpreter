@@ -3,6 +3,7 @@ package lexer
 import (
 	"Abbas-Askari/interpreter-v2/token"
 	"fmt"
+	"strings"
 	"unicode"
 )
 
@@ -10,17 +11,29 @@ func Tokenize(input string) []token.Token {
 	// This is a placeholder implementation.
 	// In a real lexer, you would parse the input string into tokens.
 
-	mapping := map[string]token.TokenType{
-		"+":     token.PLUS,
-		"-":     token.MINUS,
-		"*":     token.MULTIPLY,
-		"/":     token.SLASH,
-		";":     token.SEMICOLON,
-		"(":     token.LPAREN,
-		"{":     token.LBRACE,
-		"=":     token.ASSIGN,
-		")":     token.RPAREN,
-		"}":     token.RBRACE,
+	var operators = []struct {
+		literal string
+		typ     token.TokenType
+	}{
+		{"==", token.EQUAL_EQUAL},
+		{"!=", token.NOT_EQUAL},
+		{"<=", token.LESS_EQUAL},
+		{">=", token.GREATER_EQUAL},
+		{"=", token.ASSIGN},
+		{"<", token.LESS},
+		{">", token.GREATER},
+		{"+", token.PLUS},
+		{"-", token.MINUS},
+		{"*", token.MULTIPLY},
+		{"/", token.SLASH},
+		{";", token.SEMICOLON},
+		{"(", token.LPAREN},
+		{")", token.RPAREN},
+		{"{", token.LBRACE},
+		{"}", token.RBRACE},
+	}
+
+	keywords := map[string]token.TokenType{
 		"fun":   token.FUNCTION,
 		"print": token.PRINT,
 		"let":   token.LET,
@@ -32,8 +45,24 @@ func Tokenize(input string) []token.Token {
 	tokens := []token.Token{}
 	i := 0
 	for i != len(input) {
-		foundFromMapping := false
-		for str, tokenType := range mapping {
+		foundOp := false
+		for _, op := range operators {
+			if strings.HasPrefix(input[i:], op.literal) {
+				tokens = append(tokens, token.Token{
+					Type:    op.typ,
+					Literal: op.literal,
+				})
+				i += len(op.literal)
+				foundOp = true
+				break
+			}
+		}
+		if foundOp {
+			continue
+		}
+
+		foundFromKeywords := false
+		for str, tokenType := range keywords {
 
 			if i+len(str) > len(input) {
 				continue
@@ -50,11 +79,11 @@ func Tokenize(input string) []token.Token {
 				Literal: str,
 			})
 			i += len(str)
-			foundFromMapping = true
+			foundFromKeywords = true
 			break
 		}
 
-		if foundFromMapping {
+		if foundFromKeywords {
 			continue
 		}
 

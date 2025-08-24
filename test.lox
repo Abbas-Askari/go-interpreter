@@ -1,13 +1,35 @@
-let a = 0;
-print a;
-if a {
-    print 0 + ': The value of a is: ' + a;
-} else if a {
-    a = 123;
-    print a;
-} else {
-    print 'hehe';
-}
+let a = 1;
+let b = 2;
 
-print "Live?";
-print 'This might be live.' + '"' + "'";
+print "Equality and inequality";
+print a == b;
+print a != b;
+print a == 1 + 0;
+print b != 1 + 1;
+
+print "Comparison";
+print a < b;
+print a > b;
+print a <= b;
+print a >= b;
+
+print "Comparisons mixed with arithmetic";
+print a + 1 == b;        print "true: (a + 1) == b";
+print a * 2 == b;        print "true: (a * 2) == b";
+print a + b > a;         print "true: (a + b) > a";
+print a + b < a * b;     print "false: (a + b) < (a * b)";
+
+print "Nested precedence checks";
+print a + b == b + a;    print "true";
+print a + b == a * b;    print "false";
+print a + b * a == a + b * a; print "true (check parens grouping)";
+print a - b < 0;       print "true";
+print a - b < 0;         print "true (no parens, should still work)";
+
+
+let bool = a - b < 0;
+
+let false = 0 == 1;
+let true = 1 == 1;
+let finalTest = bool == true;
+print "bool test: " + finalTest;

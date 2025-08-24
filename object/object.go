@@ -2,6 +2,15 @@ package object
 
 import "fmt"
 
+type ObjectType string
+
+const (
+	NUMBER  = "NUMBER"
+	BOOLEAN = "BOOLEAN"
+	STRING  = "STRING"
+	NIL     = "NIL"
+)
+
 type Object interface {
 	Add(Object) Object
 	Sub(Object) Object
@@ -9,6 +18,7 @@ type Object interface {
 	Div(Object) Object
 	GetTruthy() Boolean
 	String() string
+	Type() ObjectType
 }
 
 type Number struct {
@@ -17,6 +27,10 @@ type Number struct {
 
 func (n Number) String() string {
 	return fmt.Sprintf("%v", n.Value)
+}
+
+func (n Number) Type() ObjectType {
+	return NUMBER
 }
 
 func (n Number) Add(o Object) Object {
@@ -62,6 +76,10 @@ func (n Number) GetTruthy() Boolean {
 }
 
 type Nil struct{}
+
+func (n Nil) Type() ObjectType {
+	return NIL
+}
 
 func (n Nil) Add(o Object) Object {
 	return Nil{}
