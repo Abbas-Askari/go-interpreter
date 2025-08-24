@@ -146,13 +146,13 @@ func (p *Parser) LiteralExpression() Expression {
 		return exp
 	}
 
-	if p.currentToken.Type != token.NUMBER {
-		panic(fmt.Errorf("Unknown token: %v", p.currentToken))
+	if p.currentToken.Type == token.NUMBER || p.currentToken.Type == token.STRING {
+		exp := &LiteralExpression{
+			token: p.currentToken,
+		}
+		p.move()
+		return exp
 	}
 
-	exp := &LiteralExpression{
-		token: p.currentToken,
-	}
-	p.move()
-	return exp
+	panic(fmt.Errorf("Unknown token: %v", p.currentToken))
 }

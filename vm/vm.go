@@ -53,7 +53,7 @@ func (vm *VM) Run() {
 			vm.Push(constant)
 
 		case op.OpAdd:
-			left, right := vm.Pop(), vm.Pop()
+			right, left := vm.Pop(), vm.Pop()
 			vm.Push(left.Add(right))
 
 		case op.OpSub:

@@ -8,6 +8,7 @@ type Object interface {
 	Mul(Object) Object
 	Div(Object) Object
 	GetTruthy() Boolean
+	String() string
 }
 
 type Number struct {
@@ -22,6 +23,8 @@ func (n Number) Add(o Object) Object {
 	switch v := o.(type) {
 	case Number:
 		return Number{Value: n.Value + v.Value}
+	case String:
+		return String{Value: n.String() + v.Value}
 	default:
 		return Nil{}
 	}
@@ -74,6 +77,10 @@ func (n Nil) Mul(o Object) Object {
 
 func (n Nil) Div(o Object) Object {
 	return Nil{}
+}
+
+func (n Nil) String() string {
+	return "nil"
 }
 
 func (n Nil) GetTruthy() Boolean {

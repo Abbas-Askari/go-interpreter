@@ -64,13 +64,24 @@ func (l *LiteralExpression) String() string {
 
 func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
 	c.Emit(op.OpConstant)
-	value, err := strconv.ParseFloat(l.token.Literal, 64)
-	if err != nil {
+	var index int
+
+	if l.token.Type == token.NUMBER {
+		value, err := strconv.ParseFloat(l.token.Literal, 64)
+		if err != nil {
+			panic("This shouldn't have happened! Lexer is probably broken")
+		}
+		index = c.AddConstant(object.Number{
+			Value: value,
+		})
+	} else if l.token.Type == token.STRING {
+		index = c.AddConstant(object.String{
+			Value: l.token.Literal,
+		})
+	} else {
 		panic("This shouldn't have happened! Lexer is probably broken")
 	}
-	index := c.AddConstant(object.Number{
-		Value: value,
-	})
+
 	c.Emit(op.OpCode(index))
 }
 

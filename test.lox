@@ -1,7 +1,10 @@
-let a = 0 - 1;
+let a = 0;
+print a;
 if a {
-    print a;
-} else if a +  1 {
+    print 0 + ': The value of a is: ' + a;
+} else if a {
     a = 123;
     print a;
+} else {
+    print 'hehe';
 }

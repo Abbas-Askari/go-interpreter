@@ -84,6 +84,29 @@ func Tokenize(input string) []token.Token {
 			continue
 		}
 
+		if c == '\'' {
+			i++
+			c = input[i]
+			str := ""
+			for c != '\'' {
+				str = str + string(c)
+				i++
+				if i < len(input) {
+					c = input[i]
+				} else {
+					panic("Incomplete string literal")
+				}
+			}
+			i++
+
+			tokens = append(tokens, token.Token{
+				Type:    token.STRING,
+				Literal: str,
+			})
+
+			continue
+		}
+
 		if unicode.IsLetter(rune(c)) || rune(c) == '_' {
 			str := ""
 			for unicode.IsLetter(rune(c)) || unicode.IsDigit(rune(c)) || rune(c) == '_' {

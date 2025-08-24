@@ -32,6 +32,7 @@ const (
 	LET      = "LET"
 
 	NUMBER     = "NUMBER"
+	STRING     = "STRING"
 	IDENTIFIER = "IDENTIFIER"
 
 	PRINT = "PRINT"
