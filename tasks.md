@@ -28,10 +28,22 @@
 
   - Will add functions like Object.Add(a, b Object) Object
 
+### Add Operators and expressions
+
+- [x] ==, !=, >=, <=, >, <
+- [ ] +, -
+  - Fix precedence
+- [ ] \*, /
+  - Fix precedence
+- [ ] &&, ||
+- [ ] Unary: +, -, !
+- [ ] Groupings "()"
+
 ### Overall features and fixes
 
 - [ ]add input statement `input x` will write the user input to x
 - [x] add if statements
+- [x] add single line comments
 - [ ] add Equality comparisons
 - [ ] add for statements
 - [ ] Fix operator precedence
