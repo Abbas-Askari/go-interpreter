@@ -40,3 +40,8 @@
 - Add good error showing in lexer
 - Add good error showing in parser
 - Add good error showing in VM
+
+### Dev quality of life.
+
+- [x] add test.lox to watch
+- [ ] add individual tests for features.
