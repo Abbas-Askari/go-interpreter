@@ -45,6 +45,13 @@ func Tokenize(input string) []token.Token {
 	tokens := []token.Token{}
 	i := 0
 	for i != len(input) {
+		if i+1 < len(input) && string(input[i:i+2]) == "//" {
+			for i < len(input) && input[i] != '\n' {
+				i++
+			}
+			continue
+		}
+
 		foundOp := false
 		for _, op := range operators {
 			if strings.HasPrefix(input[i:], op.literal) {
