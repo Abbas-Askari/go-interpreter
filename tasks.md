@@ -5,17 +5,38 @@
   - [x] Add print statement
 - [x] Add seperate compiler from the parser
 - add string support
+
   - in lexer to define string literals
   - in objects and allow operations on strings
-- [ ] Add global variables
-  - [x] declaration statements
-  - [x] assignment expressions
-  - [x] OpLoadGlobal & OpSetGlobal
-  - [ ] Scopes and local variables
-- add input statement `input x` will write the user input to x
-- add if statements
-- add loops
-- better errors
-  - Add good error showing in lexer
-  - Add good error showing in parser
-  - Add good error showing in VM
+
+### Add variables
+
+- [x] declaration statements
+- [x] assignment expressions
+- [x] OpLoadGlobal & OpSetGlobal
+- [x] Scopes and local variables
+
+### Add internal types
+
+- [x] Add numbers
+- [x] Add Nil
+- [x] Add Strings
+- [ ] Add Arrays
+- [ ] Add Maps
+- [ ] Unify operation in Object module.
+
+  - Will add functions like Object.Add(a, b Object) Object
+
+### Overall features and fixes
+
+- [ ]add input statement `input x` will write the user input to x
+- [x] add if statements
+- [ ] add Equality comparisons
+- [ ] add for statements
+- [ ] Fix operator precedence
+
+### better errors
+
+- Add good error showing in lexer
+- Add good error showing in parser
+- Add good error showing in VM
