@@ -24,6 +24,8 @@ const (
 	OpLoadGlobal
 	OpLoadLocal
 	OpSetLocal
+	OpJumpIfFalse
+	OpJumpIfTrue
 )
 
 func (o OpCode) String() string {
@@ -49,6 +51,8 @@ func (o OpCode) String() string {
 		OpLoadGlobal:    "OpLoadGlobal",
 		OpLoadLocal:     "OpLoadLocal",
 		OpSetLocal:      "OpSetLocal",
+		OpJumpIfFalse:   "OpJumpIfFalse",
+		OpJumpIfTrue:    "OpJumpIfTrue",
 	}
 	return opNames[o]
 }

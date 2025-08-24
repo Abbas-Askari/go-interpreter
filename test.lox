@@ -1,20 +1,7 @@
-let a = 1;
-{
+let a = 0 - 1;
+if a {
     print a;
-    let a = 2;
-    {
-        print a;
-        let a = 333;
-        let a = 123;
-        print a;
-    }
+} else if a +  1 {
+    a = 123;
     print a;
 }
-{
-  let a = 1.123;
-  {
-    let a = a;
-    print a;
-  }
-}
-print a;

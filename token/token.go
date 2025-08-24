@@ -35,6 +35,9 @@ const (
 	IDENTIFIER = "IDENTIFIER"
 
 	PRINT = "PRINT"
+	IF    = "IF"
+	FOR   = "FOR"
+	ELSE  = "ELSE"
 )
 
 type Token struct {

@@ -10,11 +10,14 @@ func Decompile(stream []op.OpCode, constants []object.Object) {
 	fmt.Println("----------DeCompiler----------")
 	i := 0
 	operandCount := map[op.OpCode]int{
-		op.OpConstant:   1,
-		op.OpSetGlobal:  1,
-		op.OpLoadGlobal: 1,
-		op.OpSetLocal:   1,
-		op.OpLoadLocal:  1,
+		op.OpConstant:    1,
+		op.OpSetGlobal:   1,
+		op.OpLoadGlobal:  1,
+		op.OpSetLocal:    1,
+		op.OpLoadLocal:   1,
+		op.OpJumpIfFalse: 1,
+		op.OpJumpIfTrue:  1,
+		op.OpJump:        1,
 	}
 	for i < len(stream) {
 		current := stream[i]

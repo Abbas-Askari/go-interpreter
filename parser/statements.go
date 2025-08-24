@@ -50,7 +50,7 @@ func (d *DeclarationStatement) Emit(c interfaces.ICompiler) {
 }
 
 func (dx DeclarationStatement) String() string {
-	return fmt.Sprintf("Declaration: %v - %v\n", dx.name, dx.expression)
+	return fmt.Sprintf("Declaration: %v = %v\n", dx.name, dx.expression)
 }
 
 type BlockStatement struct {
@@ -67,4 +67,44 @@ func (b *BlockStatement) Emit(c interfaces.ICompiler) {
 
 func (b BlockStatement) String() string {
 	return fmt.Sprintf("Block: {\n%v}\n", b.statements)
+}
+
+type IfStatement struct {
+	condition     Expression
+	thenStatement Statement
+	elseStatement *Statement
+}
+
+func (b *IfStatement) Emit(c interfaces.ICompiler) {
+	b.condition.Emit(c)
+
+	c.Emit(op.OpJumpIfFalse)
+	c.Emit(op.OpCode(0))
+
+	jumpLengthIndex := c.GetBytecodeLength() - 1
+
+	b.thenStatement.Emit(c)
+	jumpElseBlockLengthIndex := 0
+	if b.elseStatement != nil {
+		c.Emit(op.OpJump)
+		c.Emit(op.OpCode(0))
+		jumpElseBlockLengthIndex = c.GetBytecodeLength() - 1
+	}
+
+	jumpLength := c.GetBytecodeLength() - jumpLengthIndex
+	c.SetOpCode(jumpLengthIndex, op.OpCode(jumpLength))
+
+	if b.elseStatement != nil {
+		(*b.elseStatement).Emit(c)
+		jumpLength := c.GetBytecodeLength() - jumpElseBlockLengthIndex
+		c.SetOpCode(jumpElseBlockLengthIndex, op.OpCode(jumpLength))
+	}
+
+}
+
+func (b IfStatement) String() string {
+	if b.elseStatement != nil {
+		return fmt.Sprintf("If: (%v) {\n%v} else {\n%v}\n", b.condition, b.thenStatement, *b.elseStatement)
+	}
+	return fmt.Sprintf("If: (%v) {\n%v} else {\n%v}\n", b.condition, b.thenStatement, b.elseStatement)
 }

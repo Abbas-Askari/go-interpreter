@@ -126,16 +126,22 @@ func (c *Compiler) SetGlobal(name token.Token) {
 	scope := c.scope
 
 	symbol, index, err := c.GetSymbol(name, scope)
-	for err != nil {
-		panic(fmt.Errorf("Error: Undeclared Identifier: %v", name.Literal))
+	if err == nil {
+		if symbol.Depth != 0 {
+			c.Emit(op.OpSetLocal)
+		}
+		c.Emit(op.OpCode(index))
+		return
 	}
 
-	if symbol.Depth != 0 {
-		c.Emit(op.OpSetLocal)
-	} else {
+	index = slices.Index(c.globals, name.Literal)
+	if index != -1 {
 		c.Emit(op.OpSetGlobal)
+		c.Emit(op.OpCode(index))
+		return
 	}
-	c.Emit(op.OpCode(index))
+
+	panic(fmt.Errorf("Error: Undeclared Identifier: %v", name.Literal))
 }
 
 func (c *Compiler) Emit(op op.OpCode) {
@@ -148,4 +154,12 @@ func (c *Compiler) Compile(statements []parser.Statement) ([]op.OpCode, []object
 	}
 
 	return c.stream, c.constants
+}
+
+func (c *Compiler) SetOpCode(i int, op op.OpCode) {
+	c.stream[i] = op
+}
+
+func (c *Compiler) GetBytecodeLength() int {
+	return len(c.stream)
 }

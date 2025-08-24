@@ -41,6 +41,21 @@ func (p *Parser) Statement() Statement {
 			name: name, expression: exp,
 		}
 		p.consume(token.SEMICOLON, "Expected a semicolon")
+	} else if p.consumeIfExists(token.IF) {
+		exp := p.Expression()
+		thenStatement := p.Statement()
+		ifStatement := IfStatement{
+			condition:     exp,
+			thenStatement: thenStatement,
+		}
+
+		if p.consumeIfExists(token.ELSE) {
+			elseStatement := p.Statement()
+			ifStatement.elseStatement = &elseStatement
+		}
+
+		statement = &ifStatement
+
 	} else if p.consumeIfExists(token.LBRACE) {
 		statements := []Statement{}
 		for !p.consumeIfExists(token.RBRACE) {

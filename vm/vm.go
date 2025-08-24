@@ -99,6 +99,27 @@ func (vm *VM) Run() {
 			vm.ip++
 			vm.Push(vm.stack[index])
 
+		case op.OpJump:
+			jumpLength := int(vm.bytecode[vm.ip+1]) - 1 // -1 because we do a vm.ip++ at the end of the loop
+			vm.ip++
+			vm.ip += jumpLength
+
+		case op.OpJumpIfFalse:
+			jumpLength := int(vm.bytecode[vm.ip+1]) - 1 // -1 because we do a vm.ip++ at the end of the loop
+			vm.ip++
+			boolean := vm.Pop()
+			if !boolean.GetTruthy().Value {
+				vm.ip += jumpLength
+			}
+
+		case op.OpJumpIfTrue:
+			jumpLength := int(vm.bytecode[vm.ip+1])
+			vm.ip++
+			boolean := vm.Pop()
+			if boolean.GetTruthy().Value {
+				vm.ip += jumpLength
+			}
+
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)
 

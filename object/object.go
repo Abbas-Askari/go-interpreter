@@ -7,13 +7,12 @@ type Object interface {
 	Sub(Object) Object
 	Mul(Object) Object
 	Div(Object) Object
+	GetTruthy() Boolean
 }
 
 type Number struct {
 	Value float64
 }
-
-type Nil struct{}
 
 func (n Number) String() string {
 	return fmt.Sprintf("%v", n.Value)
@@ -55,6 +54,12 @@ func (n Number) Div(o Object) Object {
 	}
 }
 
+func (n Number) GetTruthy() Boolean {
+	return Boolean{Value: n.Value != 0}
+}
+
+type Nil struct{}
+
 func (n Nil) Add(o Object) Object {
 	return Nil{}
 }
@@ -69,4 +74,8 @@ func (n Nil) Mul(o Object) Object {
 
 func (n Nil) Div(o Object) Object {
 	return Nil{}
+}
+
+func (n Nil) GetTruthy() Boolean {
+	return Boolean{Value: false}
 }

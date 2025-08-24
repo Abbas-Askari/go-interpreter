@@ -24,6 +24,9 @@ func Tokenize(input string) []token.Token {
 		"fun":   token.FUNCTION,
 		"print": token.PRINT,
 		"let":   token.LET,
+		"if":    token.IF,
+		"for":   token.FOR,
+		"else":  token.ELSE,
 	}
 
 	tokens := []token.Token{}
