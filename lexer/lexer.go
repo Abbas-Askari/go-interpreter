@@ -84,11 +84,12 @@ func Tokenize(input string) []token.Token {
 			continue
 		}
 
-		if c == '\'' {
+		if c == '\'' || c == '"' {
 			i++
+			starting := c
 			c = input[i]
 			str := ""
-			for c != '\'' {
+			for c != starting {
 				str = str + string(c)
 				i++
 				if i < len(input) {

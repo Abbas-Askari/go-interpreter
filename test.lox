@@ -8,3 +8,6 @@ if a {
 } else {
     print 'hehe';
 }
+
+print "Live?";
+print 'This might be live.' + '"' + "'";
