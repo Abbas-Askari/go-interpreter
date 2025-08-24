@@ -2,6 +2,7 @@ package parser
 
 import (
 	"Abbas-Askari/interpreter-v2/token"
+	"fmt"
 )
 
 type Parser struct {
@@ -21,29 +22,42 @@ func NewParser(tokens []token.Token) *Parser {
 func (p *Parser) Parse() []Statement {
 	statements := []Statement{}
 	for p.index < len(p.tokens) {
-		var statement Statement
-
-		if p.consumeIfExists(token.LET) {
-			name := p.currentToken
-			p.move()
-			var exp Expression = &LiteralExpression{}
-			if p.consumeIfExists(token.ASSIGN) {
-				exp = p.Expression()
-			}
-			statement = &DeclarationStatement{
-				name: name, expression: exp,
-			}
-			p.consume(token.SEMICOLON, "Expected a semicolon")
-		} else if p.consumeIfExists(token.PRINT) {
-			statement = p.printStatement()
-		} else {
-			statement = ExpressionStatement{expression: p.Expression()}
-			p.consume(token.SEMICOLON, "Expected a semicolon")
-		}
-
-		statements = append(statements, statement)
+		statements = append(statements, p.Statement())
 	}
 	return statements
+}
+
+func (p *Parser) Statement() Statement {
+	var statement Statement
+
+	if p.consumeIfExists(token.LET) {
+		name := p.currentToken
+		p.move()
+		var exp Expression = &LiteralExpression{}
+		if p.consumeIfExists(token.ASSIGN) {
+			exp = p.Expression()
+		}
+		statement = &DeclarationStatement{
+			name: name, expression: exp,
+		}
+		p.consume(token.SEMICOLON, "Expected a semicolon")
+	} else if p.consumeIfExists(token.LBRACE) {
+		statements := []Statement{}
+		for !p.consumeIfExists(token.RBRACE) {
+			statements = append(statements, p.Statement())
+		}
+		// if p.index == len(p.tokens) &&
+		statement = &BlockStatement{
+			statements: statements,
+		}
+	} else if p.consumeIfExists(token.PRINT) {
+		statement = p.printStatement()
+	} else {
+		statement = ExpressionStatement{expression: p.Expression()}
+		p.consume(token.SEMICOLON, "Expected a semicolon")
+	}
+
+	return statement
 }
 
 func (p *Parser) printStatement() Statement {
@@ -118,8 +132,7 @@ func (p *Parser) LiteralExpression() Expression {
 	}
 
 	if p.currentToken.Type != token.NUMBER {
-		// _ := fmt.Errorf("Unknown token: %v", p.currentToken)
-		panic("Error")
+		panic(fmt.Errorf("Unknown token: %v", p.currentToken))
 	}
 
 	exp := &LiteralExpression{

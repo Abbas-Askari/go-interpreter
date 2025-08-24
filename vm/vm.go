@@ -84,10 +84,20 @@ func (vm *VM) Run() {
 				globals[index] = vm.Peek()
 			}
 
+		case op.OpSetLocal:
+			index := int(vm.bytecode[vm.ip+1])
+			vm.ip++
+			vm.stack[index] = vm.Peek()
+
 		case op.OpLoadGlobal:
 			index := int(vm.bytecode[vm.ip+1])
 			vm.ip++
 			vm.Push(globals[index])
+
+		case op.OpLoadLocal:
+			index := int(vm.bytecode[vm.ip+1])
+			vm.ip++
+			vm.Push(vm.stack[index])
 
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)

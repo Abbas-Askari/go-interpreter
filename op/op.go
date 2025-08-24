@@ -22,6 +22,8 @@ const (
 	OpPrint
 	OpSetGlobal
 	OpLoadGlobal
+	OpLoadLocal
+	OpSetLocal
 )
 
 func (o OpCode) String() string {
@@ -45,6 +47,8 @@ func (o OpCode) String() string {
 		OpPrint:         "OpPrint",
 		OpSetGlobal:     "OpSetGlobal",
 		OpLoadGlobal:    "OpLoadGlobal",
+		OpLoadLocal:     "OpLoadLocal",
+		OpSetLocal:      "OpSetLocal",
 	}
 	return opNames[o]
 }

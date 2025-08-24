@@ -46,12 +46,25 @@ type DeclarationStatement struct {
 
 func (d *DeclarationStatement) Emit(c interfaces.ICompiler) {
 	d.expression.Emit(c)
-	c.Emit(op.OpSetGlobal)
-	index := c.AddGlobal(d.name.Literal)
-	c.Emit(op.OpCode(index))
-	c.Emit(op.OpPop)
+	c.Declare(d.name.Literal)
 }
 
 func (dx DeclarationStatement) String() string {
 	return fmt.Sprintf("Declaration: %v - %v\n", dx.name, dx.expression)
+}
+
+type BlockStatement struct {
+	statements []Statement
+}
+
+func (b *BlockStatement) Emit(c interfaces.ICompiler) {
+	c.EnterScope()
+	for _, statement := range b.statements {
+		statement.Emit(c)
+	}
+	c.ExitScope()
+}
+
+func (b BlockStatement) String() string {
+	return fmt.Sprintf("Block: {\n%v}\n", b.statements)
 }

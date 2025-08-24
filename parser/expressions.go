@@ -87,7 +87,7 @@ func (l *IdentifierExpression) String() string {
 }
 
 func (l *IdentifierExpression) Emit(c interfaces.ICompiler) {
-	c.GetGlobal(l.token)
+	c.GetIdentifier(l.token)
 }
 
 type AssignmentExpression struct {

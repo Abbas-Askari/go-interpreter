@@ -9,7 +9,9 @@ import (
 type ICompiler interface {
 	Emit(op.OpCode)
 	AddConstant(object.Object) int
-	AddGlobal(string) int
-	GetGlobal(name token.Token)
+	Declare(string)
+	GetIdentifier(name token.Token)
 	SetGlobal(name token.Token)
+	EnterScope()
+	ExitScope()
 }
