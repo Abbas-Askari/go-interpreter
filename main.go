@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/test.lox"
+	filename := "/home/abbas/repos/interpreter-v2/for.test.lox"
 	// if len(os.Args) > 1 {
 	// 	filename = os.Args[1]
 	// }

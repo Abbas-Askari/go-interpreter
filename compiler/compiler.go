@@ -148,7 +148,7 @@ func (c *Compiler) Emit(op op.OpCode) {
 	c.stream = append(c.stream, op)
 }
 
-func (c *Compiler) Compile(statements []parser.Statement) ([]op.OpCode, []object.Object) {
+func (c *Compiler) Compile(statements []parser.Declaration) ([]op.OpCode, []object.Object) {
 	for _, statement := range statements {
 		statement.Emit(c)
 	}

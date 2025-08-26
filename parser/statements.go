@@ -3,13 +3,13 @@ package parser
 import (
 	"Abbas-Askari/interpreter-v2/interfaces"
 	"Abbas-Askari/interpreter-v2/op"
-	"Abbas-Askari/interpreter-v2/token"
 	"fmt"
 )
 
 type Statement interface {
 	Emit(p interfaces.ICompiler)
 	String() string
+	Type() DeclarationType
 }
 
 type PrintStatement struct {
@@ -25,6 +25,10 @@ func (ps PrintStatement) String() string {
 	return fmt.Sprintf("PRINT: %v\n", ps.expression)
 }
 
+func (ps PrintStatement) Type() DeclarationType {
+	return StatementDeclarationType
+}
+
 type ExpressionStatement struct {
 	expression Expression
 }
@@ -38,19 +42,8 @@ func (ex ExpressionStatement) String() string {
 	return fmt.Sprintf("Expression: %v\n", ex.expression)
 }
 
-type DeclarationStatement struct {
-	name       token.Token
-	expression Expression
-	// globalIndex int
-}
-
-func (d *DeclarationStatement) Emit(c interfaces.ICompiler) {
-	d.expression.Emit(c)
-	c.Declare(d.name.Literal)
-}
-
-func (dx DeclarationStatement) String() string {
-	return fmt.Sprintf("Declaration: %v = %v\n", dx.name, dx.expression)
+func (ex ExpressionStatement) Type() DeclarationType {
+	return StatementDeclarationType
 }
 
 type BlockStatement struct {
@@ -67,6 +60,10 @@ func (b *BlockStatement) Emit(c interfaces.ICompiler) {
 
 func (b BlockStatement) String() string {
 	return fmt.Sprintf("Block: {\n%v}\n", b.statements)
+}
+
+func (b BlockStatement) Type() DeclarationType {
+	return StatementDeclarationType
 }
 
 type IfStatement struct {
@@ -107,4 +104,53 @@ func (b IfStatement) String() string {
 		return fmt.Sprintf("If: (%v) {\n%v} else {\n%v}\n", b.condition, b.thenStatement, *b.elseStatement)
 	}
 	return fmt.Sprintf("If: (%v) {\n%v} else {\n%v}\n", b.condition, b.thenStatement, b.elseStatement)
+}
+
+func (b IfStatement) Type() DeclarationType {
+	return StatementDeclarationType
+}
+
+type ForStatement struct {
+	initialization Declaration
+	condition      Expression
+	advancement    Expression
+	body           Statement
+}
+
+func (f *ForStatement) Emit(c interfaces.ICompiler) {
+	if f.initialization != nil {
+		c.EnterScope()
+		defer c.ExitScope()
+		f.initialization.Emit(c)
+	}
+
+	startIndex := c.GetBytecodeLength()
+
+	if f.condition != nil {
+		f.condition.Emit(c)
+		c.Emit(op.OpJumpIfFalse)
+		c.Emit(op.OpCode(0))
+	}
+
+	jumpLengthIndex := c.GetBytecodeLength() - 1
+
+	f.body.Emit(c)
+	if f.advancement != nil {
+		f.advancement.Emit(c)
+	}
+	c.Emit(op.OpJump)
+	c.Emit(op.OpCode(startIndex - c.GetBytecodeLength()))
+
+	if f.condition != nil {
+		jumpLength := c.GetBytecodeLength() - jumpLengthIndex
+		c.SetOpCode(jumpLengthIndex, op.OpCode(jumpLength))
+	}
+}
+
+func (f ForStatement) String() string {
+	return fmt.Sprintf("for: (%v;%v;%v) {\n%v}\n", f.initialization, f.condition, f.advancement, f.body)
+}
+
+func (f ForStatement) Type() DeclarationType {
+	return StatementDeclarationType
 }

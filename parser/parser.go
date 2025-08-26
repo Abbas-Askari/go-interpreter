@@ -2,6 +2,7 @@ package parser
 
 import (
 	"Abbas-Askari/interpreter-v2/token"
+	"fmt"
 )
 
 type Parser struct {
@@ -18,16 +19,16 @@ func NewParser(tokens []token.Token) *Parser {
 	}
 }
 
-func (p *Parser) Parse() []Statement {
-	statements := []Statement{}
+func (p *Parser) Parse() []Declaration {
+	statements := []Declaration{}
 	for p.index < len(p.tokens) {
-		statements = append(statements, p.Statement())
+		statements = append(statements, p.Declaration())
 	}
 	return statements
 }
 
-func (p *Parser) Statement() Statement {
-	var statement Statement
+func (p *Parser) Declaration() Declaration {
+	var statement Declaration
 
 	if p.consumeIfExists(token.LET) {
 		name := p.currentToken
@@ -36,11 +37,21 @@ func (p *Parser) Statement() Statement {
 		if p.consumeIfExists(token.ASSIGN) {
 			exp = p.Expression()
 		}
-		statement = &DeclarationStatement{
+		statement = &VariableDeclaration{
 			name: name, expression: exp,
 		}
 		p.consume(token.SEMICOLON, "Expected a semicolon")
-	} else if p.consumeIfExists(token.IF) {
+	} else {
+		statement = p.Statement()
+	}
+
+	return statement
+}
+
+func (p *Parser) Statement() Statement {
+	var statement Statement
+
+	if p.consumeIfExists(token.IF) {
 		exp := p.Expression()
 		thenStatement := p.Statement()
 		ifStatement := IfStatement{
@@ -54,6 +65,32 @@ func (p *Parser) Statement() Statement {
 		}
 
 		statement = &ifStatement
+
+	} else if p.consumeIfExists(token.FOR) {
+		var init Declaration = nil
+		if !p.consumeIfExists(token.SEMICOLON) && p.match(token.LET) {
+			init = p.Declaration()
+		}
+		var cond Expression = nil
+		if p.consumeIfExists(token.SEMICOLON) && !p.match(token.LBRACE) {
+			fmt.Println(init)
+			fmt.Println(cond)
+			fmt.Println(p.currentToken)
+			cond = p.Expression()
+		}
+		var adv Expression = nil
+		if p.consumeIfExists(token.SEMICOLON) && !p.match(token.LBRACE) {
+			fmt.Println(init)
+			fmt.Println(cond)
+			fmt.Println(p.currentToken)
+			adv = p.Expression()
+		}
+		statement = &ForStatement{
+			initialization: init,
+			condition:      cond,
+			advancement:    adv,
+			body:           p.Statement(),
+		}
 
 	} else if p.consumeIfExists(token.LBRACE) {
 		statements := []Statement{}

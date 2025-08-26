@@ -1,0 +1,8 @@
+let i = 0;
+print "I is " + i;
+print "LOOP";
+print i;
+for  {
+    print "LOOP" + i;
+}
+print i;

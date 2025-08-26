@@ -43,7 +43,7 @@
 - [x] add if statements
 - [x] add single line comments
 - [x] add Equality comparisons
-- [ ] add for statements
+- [x] add for statements
 - [x] Fix operator precedence
 
 ### better errors
