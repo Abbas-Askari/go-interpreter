@@ -78,7 +78,7 @@ func (c *Compiler) ExitScope() {
 	i := len(c.scope.Store) - 1
 	for ; i >= 0; i-- {
 		symbol := c.scope.Store[i]
-		if symbol.Depth == c.scopeDepth {
+		if symbol.Depth <= c.scopeDepth {
 			break
 		}
 		c.Emit(op.OpPop)
@@ -101,6 +101,11 @@ func (c *Compiler) GetSymbol(name token.Token, scope *SymbolTable) (*Symbol, int
 }
 
 func (c *Compiler) GetIdentifier(name token.Token) {
+	if name.Literal == "k" {
+		fmt.Println(c.globals, c.scope, c.scopeDepth)
+		fmt.Println(c.stream)
+	}
+
 	scope := c.scope
 
 	symbol, index, err := c.GetSymbol(name, scope)
@@ -118,7 +123,6 @@ func (c *Compiler) GetIdentifier(name token.Token) {
 		c.Emit(op.OpCode(index))
 		return
 	}
-
 	panic(fmt.Errorf("Error: Undeclared Identifier: %v", name.Literal))
 }
 
@@ -158,6 +162,10 @@ func (c *Compiler) Compile(statements []parser.Declaration) ([]op.OpCode, []obje
 
 func (c *Compiler) SetOpCode(i int, op op.OpCode) {
 	c.stream[i] = op
+}
+
+func (c *Compiler) GetOpCode(i int) op.OpCode {
+	return c.stream[i]
 }
 
 func (c *Compiler) GetBytecodeLength() int {

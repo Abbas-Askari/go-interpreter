@@ -44,6 +44,7 @@ func (vm *VM) Run() {
 
 	for vm.ip != len(vm.bytecode) {
 		opcode := vm.bytecode[vm.ip]
+		// fmt.Println("Stack: ", vm.stack)
 		switch opcode {
 
 		case op.OpConstant:
@@ -161,7 +162,7 @@ func (vm *VM) Run() {
 
 		}
 
-		// fmt.Println(globals)
+		// fmt.Println("Stack: ", vm.stack)
 
 		vm.ip++
 	}

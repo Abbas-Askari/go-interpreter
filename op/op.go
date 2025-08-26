@@ -33,12 +33,14 @@ const (
 	OpJumpIfTrue
 	OpNot
 	OpNeg
+	OpBreak
+	OpContinue
 )
 
 func (o OpCode) String() string {
 	opNames := map[OpCode]string{
-		OpConstant:      "OpConstant",
 		OpAdd:           "OpAdd",
+		OpConstant:      "OpConstant",
 		OpSub:           "OpSub",
 		OpMul:           "OpMul",
 		OpDiv:           "OpDiv",
@@ -48,6 +50,11 @@ func (o OpCode) String() string {
 		OpEqual:         "OpEqual",
 		OpNotEqual:      "OpNotEqual",
 		OpGreaterThan:   "OpGreaterThan",
+		OpLessThan:      "OpLessThan",
+		OpGreaterEqual:  "OpGreaterEqual",
+		OpLessEqual:     "OpLessEqual",
+		OpAnd:           "OpAnd",
+		OpOr:            "OpOr",
 		OpMinus:         "OpMinus",
 		OpBang:          "OpBang",
 		OpJump:          "OpJump",
@@ -60,10 +67,14 @@ func (o OpCode) String() string {
 		OpSetLocal:      "OpSetLocal",
 		OpJumpIfFalse:   "OpJumpIfFalse",
 		OpJumpIfTrue:    "OpJumpIfTrue",
-		OpAnd:           "OpAnd",
-		OpOr:            "OpOr",
 		OpNot:           "OpNot",
 		OpNeg:           "OpNeg",
+		OpBreak:         "OpBreak",
+		OpContinue:      "OpContinue",
 	}
-	return opNames[o]
+	str, ok := opNames[o]
+	if !ok {
+		panic("Unknown OpCode")
+	}
+	return str
 }

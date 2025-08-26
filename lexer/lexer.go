@@ -36,14 +36,16 @@ func Tokenize(input string) []token.Token {
 	}
 
 	keywords := map[string]token.TokenType{
-		"true":  token.TRUE,
-		"false": token.FALSE,
-		"fun":   token.FUNCTION,
-		"print": token.PRINT,
-		"let":   token.LET,
-		"if":    token.IF,
-		"for":   token.FOR,
-		"else":  token.ELSE,
+		"true":     token.TRUE,
+		"false":    token.FALSE,
+		"fun":      token.FUNCTION,
+		"print":    token.PRINT,
+		"let":      token.LET,
+		"if":       token.IF,
+		"for":      token.FOR,
+		"else":     token.ELSE,
+		"break":    token.BREAK,
+		"continue": token.CONTINUE,
 	}
 
 	tokens := []token.Token{}

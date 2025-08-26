@@ -47,19 +47,21 @@ func (ex ExpressionStatement) Type() DeclarationType {
 }
 
 type BlockStatement struct {
-	statements []Statement
+	declarations []Declaration
 }
 
 func (b *BlockStatement) Emit(c interfaces.ICompiler) {
+	fmt.Println("Entering Block Statement")
 	c.EnterScope()
-	for _, statement := range b.statements {
+	for _, statement := range b.declarations {
 		statement.Emit(c)
 	}
 	c.ExitScope()
+	fmt.Println("Exited Block Statement")
 }
 
 func (b BlockStatement) String() string {
-	return fmt.Sprintf("Block: {\n%v}\n", b.statements)
+	return fmt.Sprintf("Block: {\n%v}\n", b.declarations)
 }
 
 func (b BlockStatement) Type() DeclarationType {
@@ -110,6 +112,11 @@ func (b IfStatement) Type() DeclarationType {
 	return StatementDeclarationType
 }
 
+const (
+	BREAK_JUMP_LENGTH    op.OpCode = -1
+	CONTINUE_JUMP_LENGTH op.OpCode = -2
+)
+
 type ForStatement struct {
 	initialization Declaration
 	condition      Expression
@@ -118,9 +125,9 @@ type ForStatement struct {
 }
 
 func (f *ForStatement) Emit(c interfaces.ICompiler) {
+	fmt.Println("Entering for Statement")
+	c.EnterScope()
 	if f.initialization != nil {
-		c.EnterScope()
-		defer c.ExitScope()
 		f.initialization.Emit(c)
 	}
 
@@ -135,16 +142,36 @@ func (f *ForStatement) Emit(c interfaces.ICompiler) {
 	jumpLengthIndex := c.GetBytecodeLength() - 1
 
 	f.body.Emit(c)
+	advancementIndex := c.GetBytecodeLength()
 	if f.advancement != nil {
 		f.advancement.Emit(c)
+		c.Emit(op.OpPop)
 	}
 	c.Emit(op.OpJump)
 	c.Emit(op.OpCode(startIndex - c.GetBytecodeLength()))
 
+	loopEndTarget := c.GetBytecodeLength()
+
 	if f.condition != nil {
-		jumpLength := c.GetBytecodeLength() - jumpLengthIndex
+		jumpLength := loopEndTarget - jumpLengthIndex
 		c.SetOpCode(jumpLengthIndex, op.OpCode(jumpLength))
 	}
+
+	// Hacky fix not seen anywhere for breaks and continue.
+	for i := startIndex; i < loopEndTarget; i++ {
+		if c.GetOpCode(i) == op.OpBreak && c.GetOpCode(i+1) == op.OpBreak {
+			c.SetOpCode(i, op.OpJump)
+			c.SetOpCode(i+1, op.OpCode(loopEndTarget-(i+1)))
+		}
+		if c.GetOpCode(i) == op.OpContinue && c.GetOpCode(i+1) == op.OpContinue {
+			c.SetOpCode(i, op.OpJump)
+			c.SetOpCode(i+1, op.OpCode(advancementIndex-(i+1)))
+			// panic("LOL")
+		}
+	}
+
+	c.ExitScope()
+	fmt.Println("Exiting for Statement")
 }
 
 func (f ForStatement) String() string {
@@ -152,5 +179,35 @@ func (f ForStatement) String() string {
 }
 
 func (f ForStatement) Type() DeclarationType {
+	return StatementDeclarationType
+}
+
+type BreakStatement struct{}
+
+func (b *BreakStatement) Emit(c interfaces.ICompiler) {
+	c.Emit(op.OpBreak)
+	c.Emit(op.OpBreak)
+}
+
+func (b BreakStatement) String() string {
+	return fmt.Sprintf("Break\n")
+}
+
+func (b BreakStatement) Type() DeclarationType {
+	return StatementDeclarationType
+}
+
+type ContinueStatement struct{}
+
+func (b *ContinueStatement) Emit(c interfaces.ICompiler) {
+	c.Emit(op.OpContinue)
+	c.Emit(op.OpContinue)
+}
+
+func (b ContinueStatement) String() string {
+	return fmt.Sprintf("Continue\n")
+}
+
+func (b ContinueStatement) Type() DeclarationType {
 	return StatementDeclarationType
 }

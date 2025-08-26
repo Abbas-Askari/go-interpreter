@@ -48,10 +48,12 @@ const (
 	STRING     TokenType = "STRING"
 	IDENTIFIER TokenType = "IDENTIFIER"
 
-	PRINT TokenType = "PRINT"
-	IF    TokenType = "IF"
-	FOR   TokenType = "FOR"
-	ELSE  TokenType = "ELSE"
+	PRINT    TokenType = "PRINT"
+	IF       TokenType = "IF"
+	FOR      TokenType = "FOR"
+	BREAK    TokenType = "BREAK"
+	CONTINUE TokenType = "CONTINUE"
+	ELSE     TokenType = "ELSE"
 )
 
 type Token struct {

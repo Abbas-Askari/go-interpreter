@@ -1,8 +1,60 @@
-let i = 0;
-print "I is " + i;
-print "LOOP";
-print i;
-for  {
-    print "LOOP" + i;
+// Case 1: Classic for with init; cond; post
+// Expect: 0 1 2 3 4
+for let i = 0; i <= 4; i = i + 1 {
+    print(i);
 }
-print i;
+
+// Case 2: for with omitted init
+// Expect: 0 1 2
+let j = 0;
+for ; j < 3; j = j + 1 {
+    print(j);
+}
+
+// Case 3: for with omitted cond (break inside)
+// Expect: 0 1 2 3 4
+for let k = 0; ; k = k + 1 {
+    print(k);
+    if k >= 4 {
+        break;
+    }
+}
+
+// Case 4: for with omitted post (manual increment)
+// Expect: 0 1 2
+let m = 0;
+for ; m < 3; {
+    print(m);
+    m = m + 1;
+}
+
+// Case 5: cond-only "while-style"
+// Expect: 0 1 2 3 4
+let n = 0;
+for n < 5 {
+    print(n);
+    n = n + 1;
+}
+
+// Case 6: infinite loop with break
+// Expect: 0 1 2
+let x = 0;
+for {
+    if x >= 3 {
+        break;
+    }
+    print(x);
+    x = x + 1;
+}
+
+// Case 7: continue inside loop
+// Expect: 0 2 4
+let even = false;
+for let y = 0; y <= 4; y = y + 1 {
+    if even {
+        even = false;
+        continue;
+    }
+    even = true;
+    print(y);
+}

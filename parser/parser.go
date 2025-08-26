@@ -67,42 +67,50 @@ func (p *Parser) Statement() Statement {
 		statement = &ifStatement
 
 	} else if p.consumeIfExists(token.FOR) {
+		fmt.Println("BUILDING FOR LOOP")
 		var init Declaration = nil
-		if !p.consumeIfExists(token.SEMICOLON) && p.match(token.LET) {
-			init = p.Declaration()
-		}
 		var cond Expression = nil
-		if p.consumeIfExists(token.SEMICOLON) && !p.match(token.LBRACE) {
-			fmt.Println(init)
-			fmt.Println(cond)
-			fmt.Println(p.currentToken)
-			cond = p.Expression()
-		}
 		var adv Expression = nil
-		if p.consumeIfExists(token.SEMICOLON) && !p.match(token.LBRACE) {
-			fmt.Println(init)
-			fmt.Println(cond)
-			fmt.Println(p.currentToken)
+		if p.match(token.LET) {
+			init = p.Declaration()
+		} else {
+			p.consumeIfExists(token.SEMICOLON)
+		}
+		if !p.match(token.LBRACE) {
+			if !p.consumeIfExists(token.SEMICOLON) {
+				cond = p.Expression()
+			}
+		}
+		p.consumeIfExists(token.SEMICOLON)
+		if !p.match(token.LBRACE) {
 			adv = p.Expression()
 		}
+		fmt.Println(init)
+		fmt.Println(cond)
 		statement = &ForStatement{
 			initialization: init,
 			condition:      cond,
 			advancement:    adv,
 			body:           p.Statement(),
 		}
-
+		fmt.Println(statement)
 	} else if p.consumeIfExists(token.LBRACE) {
-		statements := []Statement{}
+		declarations := []Declaration{}
 		for !p.consumeIfExists(token.RBRACE) {
-			statements = append(statements, p.Statement())
+			declarations = append(declarations, p.Declaration())
 		}
 		// if p.index == len(p.tokens) &&
 		statement = &BlockStatement{
-			statements: statements,
+			declarations: declarations,
 		}
 	} else if p.consumeIfExists(token.PRINT) {
 		statement = p.printStatement()
+	} else if p.consumeIfExists(token.BREAK) {
+		statement = &BreakStatement{}
+		p.consume(token.SEMICOLON, "Expected a semicolon")
+	} else if p.consumeIfExists(token.CONTINUE) {
+		statement = &ContinueStatement{}
+		p.consume(token.SEMICOLON, "Expected a semicolon")
 	} else {
 		statement = ExpressionStatement{expression: p.Expression()}
 		p.consume(token.SEMICOLON, "Expected a semicolon")
