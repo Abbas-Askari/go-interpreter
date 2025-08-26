@@ -65,6 +65,10 @@ func (vm *VM) Run() {
 			right, left := vm.Pop(), vm.Pop()
 			vm.Push(left.Mul(right))
 
+		case op.OpMod:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.Mod(left, right))
+
 		case op.OpDiv:
 			right, left := vm.Pop(), vm.Pop()
 			vm.Push(left.Div(right))

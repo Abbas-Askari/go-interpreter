@@ -35,6 +35,7 @@ const (
 	OpNeg
 	OpBreak
 	OpContinue
+	OpMod
 )
 
 func (o OpCode) String() string {
@@ -71,6 +72,7 @@ func (o OpCode) String() string {
 		OpNeg:           "OpNeg",
 		OpBreak:         "OpBreak",
 		OpContinue:      "OpContinue",
+		OpMod:           "OpMod",
 	}
 	str, ok := opNames[o]
 	if !ok {

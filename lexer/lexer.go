@@ -33,6 +33,7 @@ func Tokenize(input string) []token.Token {
 		{")", token.RPAREN},
 		{"{", token.LBRACE},
 		{"}", token.RBRACE},
+		{"%", token.PERCENT},
 	}
 
 	keywords := map[string]token.TokenType{

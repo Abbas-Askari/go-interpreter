@@ -49,12 +49,10 @@ for {
 
 // Case 7: continue inside loop
 // Expect: 0 2 4
-let even = false;
-for let y = 0; y <= 4; y = y + 1 {
-    if even {
-        even = false;
-        continue;
-    }
-    even = true;
+for let y = 0; y <= 20; y = y + 1 {
+
+    if y % 2 == 0 
+        {continue;}
+    
     print(y);
 }

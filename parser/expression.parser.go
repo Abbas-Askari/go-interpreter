@@ -92,7 +92,7 @@ func (p *Parser) Factor() Expression {
 	left := p.Unary()
 
 	operand := p.currentToken
-	hasOperand := p.consumeIfExists(token.SLASH) || p.consumeIfExists(token.MULTIPLY)
+	hasOperand := p.consumeIfExists(token.SLASH, token.MULTIPLY, token.PERCENT)
 	for hasOperand {
 		right := p.Unary()
 		left = &BinaryExpression{
@@ -101,7 +101,7 @@ func (p *Parser) Factor() Expression {
 			right:   right,
 		}
 		operand = p.currentToken
-		hasOperand = p.consumeIfExists(token.SLASH) || p.consumeIfExists(token.MULTIPLY)
+		hasOperand = p.consumeIfExists(token.SLASH, token.MULTIPLY, token.PERCENT)
 	}
 
 	return left

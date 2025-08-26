@@ -10,6 +10,13 @@ func Equal(left, right Object) Object {
 	return Boolean{Value: right == left}
 }
 
+func Mod(left, right Object) Object {
+	if right.Type() != NUMBER || left.Type() != NUMBER {
+		panic(fmt.Errorf("Cannot mod types %v and %v", right.Type(), left.Type()))
+	}
+	return Number{Value: float64(int(left.(Number).Value) % int(right.(Number).Value))}
+}
+
 func And(left, right Object) Object {
 	return Boolean{Value: right.GetTruthy().Value && left.GetTruthy().Value}
 }

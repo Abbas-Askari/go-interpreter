@@ -17,6 +17,7 @@ const (
 	ASSIGN   TokenType = "="
 	MULTIPLY TokenType = "*"
 	SLASH    TokenType = "/"
+	PERCENT  TokenType = "%"
 	PLUS     TokenType = "+"
 	MINUS    TokenType = "-"
 	NOT      TokenType = "!"

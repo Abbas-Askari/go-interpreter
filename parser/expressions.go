@@ -47,6 +47,7 @@ func (b *BinaryExpression) Emit(c interfaces.ICompiler) {
 		token.MINUS:         op.OpSub,
 		token.SLASH:         op.OpDiv,
 		token.MULTIPLY:      op.OpMul,
+		token.PERCENT:       op.OpMod,
 		token.EQUAL_EQUAL:   op.OpEqual,
 		token.NOT_EQUAL:     op.OpNotEqual,
 		token.GREATER:       op.OpGreaterThan,
