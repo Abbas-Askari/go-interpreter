@@ -31,22 +31,20 @@
 ### Add Operators and expressions
 
 - [x] ==, !=, >=, <=, >, <
-- [ ] +, -
-  - Fix precedence
-- [ ] \*, /
-  - Fix precedence
-- [ ] &&, ||
-- [ ] Unary: +, -, !
-- [ ] Groupings "()"
+- [x] +, -
+- [x] \*, /
+- [x] &&, ||
+- [x] Unary: +, -, !
+- [x] Groupings "()"
 
 ### Overall features and fixes
 
 - [ ]add input statement `input x` will write the user input to x
 - [x] add if statements
 - [x] add single line comments
-- [ ] add Equality comparisons
+- [x] add Equality comparisons
 - [ ] add for statements
-- [ ] Fix operator precedence
+- [x] Fix operator precedence
 
 ### better errors
 

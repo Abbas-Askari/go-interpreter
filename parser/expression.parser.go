@@ -19,12 +19,27 @@ func (p *Parser) Expression() Expression {
 
 func (p *Parser) Or() Expression {
 	exp := p.And()
-	// if p.consumeIfExists(token.)
+	tok := p.currentToken
+	if p.consumeIfExists(token.OR) {
+		exp = &BinaryExpression{
+			left:    exp,
+			operand: token.Token{Type: tok.Type},
+			right:   p.And(),
+		}
+	}
 	return exp
 }
 
 func (p *Parser) And() Expression {
 	exp := p.Equality()
+	tok := p.currentToken
+	if p.consumeIfExists(token.AND) {
+		exp = &BinaryExpression{
+			left:    exp,
+			operand: token.Token{Type: tok.Type},
+			right:   p.Equality(),
+		}
+	}
 	return exp
 }
 
@@ -42,35 +57,66 @@ func (p *Parser) Equality() Expression {
 }
 
 func (p *Parser) Comparison() Expression {
-	exp := p.BinaryExpression()
+	exp := p.Term()
 	tok := p.currentToken
 	if p.consumeIfExists(token.LESS_EQUAL, token.GREATER_EQUAL, token.LESS, token.GREATER) {
 		exp = &BinaryExpression{
 			left:    exp,
 			operand: token.Token{Type: tok.Type},
-			right:   p.BinaryExpression(),
+			right:   p.Term(),
 		}
 	}
 	return exp
 }
 
-func (p *Parser) BinaryExpression() Expression {
-	left := p.LiteralExpression()
+func (p *Parser) Term() Expression {
+	left := p.Factor()
 
 	operand := p.currentToken
-	hasOperand := p.consumeIfExists(token.PLUS) || p.consumeIfExists(token.MINUS) || p.consumeIfExists(token.SLASH) || p.consumeIfExists(token.MULTIPLY)
+	hasOperand := p.consumeIfExists(token.PLUS) || p.consumeIfExists(token.MINUS)
 	for hasOperand {
-		right := p.LiteralExpression()
+		right := p.Factor()
 		left = &BinaryExpression{
 			left:    left,
 			operand: operand,
 			right:   right,
 		}
 		operand = p.currentToken
-		hasOperand = p.consumeIfExists(token.PLUS) || p.consumeIfExists(token.MINUS) || p.consumeIfExists(token.SLASH) || p.consumeIfExists(token.MULTIPLY)
+		hasOperand = p.consumeIfExists(token.PLUS) || p.consumeIfExists(token.MINUS)
 	}
 
 	return left
+}
+
+func (p *Parser) Factor() Expression {
+	left := p.Unary()
+
+	operand := p.currentToken
+	hasOperand := p.consumeIfExists(token.SLASH) || p.consumeIfExists(token.MULTIPLY)
+	for hasOperand {
+		right := p.Unary()
+		left = &BinaryExpression{
+			left:    left,
+			operand: operand,
+			right:   right,
+		}
+		operand = p.currentToken
+		hasOperand = p.consumeIfExists(token.SLASH) || p.consumeIfExists(token.MULTIPLY)
+	}
+
+	return left
+}
+
+func (p *Parser) Unary() Expression {
+	tok := p.currentToken
+	if p.consumeIfExists(token.NOT, token.MINUS, token.PLUS) {
+		return &UnaryExpression{
+			exp:     p.Unary(),
+			operand: tok,
+		}
+	}
+
+	return p.LiteralExpression()
 }
 
 func (p *Parser) LiteralExpression() Expression {
@@ -82,11 +128,18 @@ func (p *Parser) LiteralExpression() Expression {
 		return exp
 	}
 
-	if p.currentToken.Type == token.NUMBER || p.currentToken.Type == token.STRING {
+	if p.match(token.NUMBER, token.STRING, token.TRUE, token.FALSE) {
 		exp := &LiteralExpression{
 			token: p.currentToken,
 		}
 		p.move()
+		return exp
+	}
+
+	if p.consumeIfExists(token.LPAREN) {
+		// Not introducing a Grouping struct, Will just return a normal expression because of laziness
+		exp := p.Expression()
+		p.consume(token.RPAREN, "Unclosed '(', Expected ')'")
 		return exp
 	}
 

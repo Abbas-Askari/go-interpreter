@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("File not found!\nUsage: run [filepath]"))
 	}
-	fmt.Println(string(fileContent))
+	// fmt.Println(string(fileContent))
 
 	tokens := lexer.Tokenize(string(fileContent))
 

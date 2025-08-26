@@ -138,6 +138,23 @@ func (vm *VM) Run() {
 		case op.OpLessEqual:
 			right, left := vm.Pop(), vm.Pop()
 			vm.Push(object.LessOrEqual(right, left))
+		case op.OpNeg:
+			val := vm.Pop()
+			vm.Push(object.Neg(val))
+		case op.OpNot:
+			val := vm.Pop()
+			vm.Push(object.Not(val))
+		case op.OpAnd:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.And(right, left))
+		case op.OpOr:
+			right, left := vm.Pop(), vm.Pop()
+			vm.Push(object.Or(right, left))
+
+		case op.OpTrue:
+			vm.Push(object.Boolean{Value: true})
+		case op.OpFalse:
+			vm.Push(object.Boolean{Value: false})
 
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)

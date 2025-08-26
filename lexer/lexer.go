@@ -19,6 +19,8 @@ func Tokenize(input string) []token.Token {
 		{"!=", token.NOT_EQUAL},
 		{"<=", token.LESS_EQUAL},
 		{">=", token.GREATER_EQUAL},
+		{"&&", token.AND},
+		{"||", token.OR},
 		{"=", token.ASSIGN},
 		{"<", token.LESS},
 		{">", token.GREATER},
@@ -34,6 +36,8 @@ func Tokenize(input string) []token.Token {
 	}
 
 	keywords := map[string]token.TokenType{
+		"true":  token.TRUE,
+		"false": token.FALSE,
 		"fun":   token.FUNCTION,
 		"print": token.PRINT,
 		"let":   token.LET,

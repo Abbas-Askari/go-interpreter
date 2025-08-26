@@ -20,6 +20,8 @@ const (
 	PLUS     TokenType = "+"
 	MINUS    TokenType = "-"
 	NOT      TokenType = "!"
+	AND      TokenType = "&&"
+	OR       TokenType = "||"
 
 	COMMA     TokenType = ","
 	SEMICOLON TokenType = ";"
@@ -38,6 +40,9 @@ const (
 
 	FUNCTION TokenType = "FUNCTION"
 	LET      TokenType = "LET"
+
+	TRUE  TokenType = "TRUE"
+	FALSE TokenType = "FALSE"
 
 	NUMBER     TokenType = "NUMBER"
 	STRING     TokenType = "STRING"

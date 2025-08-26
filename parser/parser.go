@@ -99,6 +99,15 @@ func (p *Parser) consumeIfExists(types ...token.TokenType) bool {
 	return false
 }
 
+func (p *Parser) match(types ...token.TokenType) bool {
+	for _, t := range types {
+		if p.currentToken.Type == t {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Parser) consume(t token.TokenType, err string) {
 	if p.currentToken.Type == t {
 		p.move()

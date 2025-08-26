@@ -9,6 +9,15 @@ func Equal(left, right Object) Object {
 
 	return Boolean{Value: right == left}
 }
+
+func And(left, right Object) Object {
+	return Boolean{Value: right.GetTruthy().Value && left.GetTruthy().Value}
+}
+
+func Or(left, right Object) Object {
+	return Boolean{Value: right.GetTruthy().Value || left.GetTruthy().Value}
+}
+
 func NotEqual(left, right Object) Object {
 	return Boolean{Value: !Equal(right, left).(Boolean).Value}
 }
@@ -75,4 +84,20 @@ func LessOrEqual(left, right Object) Object {
 	}
 
 	panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+}
+
+func Not(o Object) Object {
+	return Boolean{
+		Value: !o.GetTruthy().Value,
+	}
+}
+
+func Neg(o Object) Object {
+	if o.Type() != NUMBER {
+		panic(fmt.Errorf("Cannot negate %v, Only numbers can have unary minus", o))
+	}
+
+	return Number{
+		Value: -o.(Number).Value,
+	}
 }

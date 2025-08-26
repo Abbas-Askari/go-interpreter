@@ -17,6 +17,7 @@ const (
 	LITERAL_EXPRESSION    = "LITERAL_EXPRESSION"
 	IDENTIFIER_EXPRESSION = "IDENTIFIER_EXPRESSION"
 	ASSIGNMENT_EXPRESSION = "ASSIGNMENT_EXPRESSION"
+	UNARY_EXPRESSION      = "UNARY_EXPRESSION"
 )
 
 type Expression interface {
@@ -52,8 +53,41 @@ func (b *BinaryExpression) Emit(c interfaces.ICompiler) {
 		token.LESS:          op.OpLessThan,
 		token.GREATER_EQUAL: op.OpGreaterEqual,
 		token.LESS_EQUAL:    op.OpLessEqual,
+		token.AND:           op.OpAnd,
+		token.OR:            op.OpOr,
 	}
 	c.Emit(mapping[b.operand.Type])
+}
+
+type UnaryExpression struct {
+	operand token.Token
+	exp     Expression
+}
+
+func (b *UnaryExpression) GetType() ExpressionType {
+	return UNARY_EXPRESSION
+}
+
+func (b *UnaryExpression) String() string {
+	return fmt.Sprintf("%v(%v %v)", colors.Colorize(UNARY_EXPRESSION, colors.BLUE), b.operand, b.exp)
+}
+
+func (b *UnaryExpression) Emit(c interfaces.ICompiler) {
+	b.exp.Emit(c)
+	mapping := map[token.TokenType]op.OpCode{
+		token.NOT:   op.OpNot,
+		token.MINUS: op.OpNeg,
+		// token.PLUS:  op.OpConvNum,
+	}
+	op, ok := mapping[b.operand.Type]
+
+	if !ok {
+		// No need to eval plus right on numbers.
+		// Will deal with Unary Plus on string later.
+		return
+	}
+
+	c.Emit(op)
 }
 
 type LiteralExpression struct {
@@ -69,6 +103,14 @@ func (l *LiteralExpression) String() string {
 }
 
 func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
+	if l.token.Type == token.TRUE {
+		c.Emit(op.OpTrue)
+		return
+	} else if l.token.Type == token.FALSE {
+		c.Emit(op.OpFalse)
+		return
+	}
+
 	c.Emit(op.OpConstant)
 	var index int
 

@@ -17,6 +17,8 @@ const (
 	OpLessThan
 	OpGreaterEqual
 	OpLessEqual
+	OpAnd
+	OpOr
 	OpMinus
 	OpBang
 	OpJump
@@ -29,6 +31,8 @@ const (
 	OpSetLocal
 	OpJumpIfFalse
 	OpJumpIfTrue
+	OpNot
+	OpNeg
 )
 
 func (o OpCode) String() string {
@@ -56,6 +60,10 @@ func (o OpCode) String() string {
 		OpSetLocal:      "OpSetLocal",
 		OpJumpIfFalse:   "OpJumpIfFalse",
 		OpJumpIfTrue:    "OpJumpIfTrue",
+		OpAnd:           "OpAnd",
+		OpOr:            "OpOr",
+		OpNot:           "OpNot",
+		OpNeg:           "OpNeg",
 	}
 	return opNames[o]
 }
