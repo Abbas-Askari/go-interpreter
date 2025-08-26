@@ -39,11 +39,15 @@
 
 ### Overall features and fixes
 
-- [ ]add input statement `input x` will write the user input to x
+- [ ] add input statement `input x` will write the user input to x
+- [ ] Logical operators short curciting
+  - `a = "abc" || 123` will store `"abc"` in a
+  - `a = "abc" && 123` will store `123` in a
 - [x] add if statements
 - [x] add single line comments
 - [x] add Equality comparisons
 - [x] add for statements
+- [ ] Add break and continue
 - [x] Fix operator precedence
 
 ### better errors
