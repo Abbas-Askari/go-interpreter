@@ -47,7 +47,8 @@
 - [x] add single line comments
 - [x] add Equality comparisons
 - [x] add for statements
-- [ ] Add break and continue
+- [x] Add break and continue
+- [ ] Fix break and continue bug which can occur if some other part of the AST emits bytecode of OpBreak 2 times as operands.
 - [x] Fix operator precedence
 
 ### better errors

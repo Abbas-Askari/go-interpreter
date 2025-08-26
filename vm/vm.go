@@ -161,6 +161,11 @@ func (vm *VM) Run() {
 		case op.OpFalse:
 			vm.Push(object.Boolean{Value: false})
 
+		case op.OpBreak:
+			log.Fatal("Break statement not in loop")
+		case op.OpContinue:
+			log.Fatal("Continue statement not in loop")
+
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)
 
