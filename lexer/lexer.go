@@ -88,6 +88,13 @@ func Tokenize(input string) []token.Token {
 				continue
 			}
 
+			if i+len(str) < len(input) {
+				nextCharacter := rune(input[i+len(str)])
+				if unicode.IsDigit(nextCharacter) || unicode.IsLetter(nextCharacter) || nextCharacter == '_' {
+					continue
+				}
+			}
+
 			tokens = append(tokens, token.Token{
 				Type:    tokenType,
 				Literal: str,
