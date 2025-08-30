@@ -125,6 +125,24 @@ func (p *Parser) LiteralExpression() Expression {
 			token: p.currentToken,
 		}
 		p.move()
+		if p.consumeIfExists(token.LPAREN) {
+			// Function Call
+			args := []Expression{}
+			if !p.consumeIfExists(token.RPAREN) {
+				for {
+					args = append(args, p.Expression())
+					if p.consumeIfExists(token.RPAREN) {
+						break
+					}
+					p.consume(token.COMMA, "Expected ',' between function call arguments")
+				}
+			}
+			return &CallExpression{
+				callee:    *exp,
+				arguments: args,
+			}
+		}
+
 		return exp
 	}
 

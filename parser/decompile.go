@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-func Decompile(stream []op.OpCode, constants []object.Object) {
+func Decompile(function object.Function, constants []object.Object) {
 	fmt.Println("----------DeCompiler----------")
 	i := 0
 	operandCount := map[op.OpCode]int{
@@ -18,12 +18,13 @@ func Decompile(stream []op.OpCode, constants []object.Object) {
 		op.OpJumpIfFalse: 1,
 		op.OpJumpIfTrue:  1,
 		op.OpJump:        1,
+		op.OpCall:        1,
 	}
-	for i < len(stream) {
-		current := stream[i]
+	for i < len(function.Stream) {
+		current := function.Stream[i]
 
 		if _, ok := operandCount[current]; ok {
-			fmt.Printf("%04d %v %d\n", i, current, stream[i+1])
+			fmt.Printf("%04d %v %d\n", i, current, function.Stream[i+1])
 			i += 2
 			continue
 		}

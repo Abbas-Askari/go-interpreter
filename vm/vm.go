@@ -7,19 +7,44 @@ import (
 	"log"
 )
 
+type CallFrame struct {
+	function object.Function
+	// slots    []object.Object
+	ip int
+	bp int
+}
+
+func (f CallFrame) String() string {
+	return fmt.Sprintf("CallFrame: { function: %v, ip: %d, bp: %d }",
+		f.function, f.ip, f.bp)
+}
+
+const (
+	STACK_SIZE = 1024
+)
+
 type VM struct {
-	bytecode  []op.OpCode
+	frames    []CallFrame
 	constants []object.Object
 	stack     []object.Object
 	ip        int
 }
 
-func NewVM(bytecode []op.OpCode, constants []object.Object) *VM {
+func NewVM(function object.Function, constants []object.Object) *VM {
+	stack := make([]object.Object, 0, STACK_SIZE)
+
+	frames := []CallFrame{
+		{
+			function: function,
+			// slots:    stack[:],
+			ip: 0,
+		},
+	}
+
 	return &VM{
-		bytecode:  bytecode,
+		frames:    frames,
 		constants: constants,
-		stack:     []object.Object{},
-		ip:        0,
+		stack:     stack,
 	}
 }
 
@@ -42,14 +67,20 @@ func (vm *VM) Run() {
 
 	globals := []object.Object{}
 
-	for vm.ip != len(vm.bytecode) {
-		opcode := vm.bytecode[vm.ip]
+	frame := &vm.frames[0]
+
+	for frame.ip != len(frame.function.Stream) {
+		opcode := frame.function.Stream[frame.ip]
 		// fmt.Println("Stack: ", vm.stack)
+		// // fmt.Println("Slots: ", frame.slots)
+		// fmt.Println("OpCode: ", opcode, "OpCOde int:", int(opcode))
+		// fmt.Println("Ip: ", frame.ip)
+		// fmt.Println("Frame: ", vm.frames)
 		switch opcode {
 
 		case op.OpConstant:
-			index := vm.bytecode[vm.ip+1]
-			vm.ip++
+			index := frame.function.Stream[frame.ip+1]
+			frame.ip++
 			constant := vm.constants[index]
 			vm.Push(constant)
 
@@ -81,8 +112,8 @@ func (vm *VM) Run() {
 			fmt.Println(o)
 
 		case op.OpSetGlobal:
-			index := int(vm.bytecode[vm.ip+1])
-			vm.ip++
+			index := int(frame.function.Stream[frame.ip+1])
+			frame.ip++
 			if index >= len(globals) {
 				globals = append(globals, vm.Peek())
 			} else {
@@ -90,39 +121,39 @@ func (vm *VM) Run() {
 			}
 
 		case op.OpSetLocal:
-			index := int(vm.bytecode[vm.ip+1])
-			vm.ip++
-			vm.stack[index] = vm.Peek()
+			index := int(frame.function.Stream[frame.ip+1])
+			frame.ip++
+			vm.stack[frame.bp+index] = vm.Peek()
 
 		case op.OpLoadGlobal:
-			index := int(vm.bytecode[vm.ip+1])
-			vm.ip++
+			index := int(frame.function.Stream[frame.ip+1])
+			frame.ip++
 			vm.Push(globals[index])
 
 		case op.OpLoadLocal:
-			index := int(vm.bytecode[vm.ip+1])
-			vm.ip++
-			vm.Push(vm.stack[index])
+			index := int(frame.function.Stream[frame.ip+1])
+			frame.ip++
+			vm.Push(vm.stack[frame.bp+index])
 
 		case op.OpJump:
-			jumpLength := int(vm.bytecode[vm.ip+1]) - 1 // -1 because we do a vm.ip++ at the end of the loop
-			vm.ip++
-			vm.ip += jumpLength
+			jumpLength := int(frame.function.Stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
+			frame.ip++
+			frame.ip += jumpLength
 
 		case op.OpJumpIfFalse:
-			jumpLength := int(vm.bytecode[vm.ip+1]) - 1 // -1 because we do a vm.ip++ at the end of the loop
-			vm.ip++
+			jumpLength := int(frame.function.Stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
+			frame.ip++
 			boolean := vm.Pop()
 			if !boolean.GetTruthy().Value {
-				vm.ip += jumpLength
+				frame.ip += jumpLength
 			}
 
 		case op.OpJumpIfTrue:
-			jumpLength := int(vm.bytecode[vm.ip+1])
-			vm.ip++
+			jumpLength := int(frame.function.Stream[frame.ip+1])
+			frame.ip++
 			boolean := vm.Pop()
 			if boolean.GetTruthy().Value {
-				vm.ip += jumpLength
+				frame.ip += jumpLength
 			}
 
 		case op.OpEqual:
@@ -166,13 +197,49 @@ func (vm *VM) Run() {
 		case op.OpContinue:
 			log.Fatal("Continue statement not in loop")
 
+		case op.OpCall:
+			argCount := int(frame.function.Stream[frame.ip+1])
+			frame.ip++
+
+			// callee := vm.stack[frame.bp+len(vm.stack)-1-argCount]
+			callee := vm.Pop()
+			fn, ok := callee.(object.Function)
+			if !ok {
+				log.Fatal("Can only call functions. Got: ", callee.Type())
+			}
+
+			newFrame := CallFrame{
+				function: fn,
+				bp:       len(vm.stack) - argCount,
+				// slots:    vm.stack[frame.bp+len(frame.slots)-argCount:], // pass the arguments and the space for local variables
+				ip: 0,
+			}
+			vm.frames = append(vm.frames, newFrame)
+			frame = &newFrame
+			fmt.Println("CALL -> New Frame: ", newFrame)
+			fmt.Println("Stack: ", vm.stack)
+			continue
+
+		case op.OpNil:
+			vm.Push(object.Nil{})
+
+		case op.OpReturn:
+			returned := vm.Pop()
+			// outer := vm.frames[len(vm.frames)-2]
+			// outer.slots = outer.slots[:len(outer.slots)-??len(frame.slots)]
+			vm.frames = vm.frames[:len(vm.frames)-1]
+			vm.Push(returned)
+			frame = &vm.frames[len(vm.frames)-1]
+			// continue
+
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)
 
 		}
 
-		// fmt.Println("Stack: ", vm.stack)
-
-		vm.ip++
+		frame.ip++
 	}
+
+	fmt.Println("Stack: ", vm.stack)
+
 }

@@ -17,4 +17,6 @@ type ICompiler interface {
 	EnterScope()
 	ExitScope()
 	GetBytecodeLength() int
+	EnterTarget()
+	ExitTarget() int
 }

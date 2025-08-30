@@ -211,3 +211,20 @@ func (b ContinueStatement) String() string {
 func (b ContinueStatement) Type() DeclarationType {
 	return StatementDeclarationType
 }
+
+type ReturnStatement struct {
+	exp Expression
+}
+
+func (b *ReturnStatement) Emit(c interfaces.ICompiler) {
+	c.Emit(op.OpReturn)
+	c.Emit(op.OpReturn)
+}
+
+func (b ReturnStatement) String() string {
+	return fmt.Sprintf("Return: %v\n", b.exp)
+}
+
+func (b ReturnStatement) Type() DeclarationType {
+	return StatementDeclarationType
+}

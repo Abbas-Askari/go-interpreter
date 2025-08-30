@@ -34,12 +34,13 @@ func Tokenize(input string) []token.Token {
 		{"{", token.LBRACE},
 		{"}", token.RBRACE},
 		{"%", token.PERCENT},
+		{",", token.COMMA},
 	}
 
 	keywords := map[string]token.TokenType{
 		"true":     token.TRUE,
 		"false":    token.FALSE,
-		"fun":      token.FUNCTION,
+		"func":     token.FUNCTION,
 		"print":    token.PRINT,
 		"let":      token.LET,
 		"if":       token.IF,

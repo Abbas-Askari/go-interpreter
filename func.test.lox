@@ -1,0 +1,8 @@
+func hello(a1, a2, a3, a4) {
+    print a1;
+    print a2;
+    print a3;
+    print a4;
+}
+
+print 2 + hello(1, 2, 3, 4);

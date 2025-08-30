@@ -6,26 +6,80 @@ import (
 	"Abbas-Askari/interpreter-v2/parser"
 	"Abbas-Askari/interpreter-v2/token"
 	"fmt"
+	"log"
 	"slices"
 )
 
 type Compiler struct {
-	stream     []op.OpCode
-	constants  []object.Object
-	globals    []string
+	constants []object.Object
+	globals   []string
+
+	target *Target
+}
+
+type TargetType int
+
+const (
+	FUNCTION_TARGET TargetType = iota
+	SCRIPT_TARGET
+)
+
+type Target struct {
+	function   object.Function
+	targetType TargetType
+
 	scope      *SymbolTable
 	scopeDepth int
+
+	outer *Target
+}
+
+func NewTarget(outer *Target) *Target {
+	t := SCRIPT_TARGET
+	if outer != nil {
+		t = FUNCTION_TARGET
+	}
+
+	store := []Symbol{}
+	if outer != nil {
+		// store = append(store, Symbol{Name: "this", Scope: LocalScope, Depth: 0})
+	}
+
+	return &Target{
+		function: object.Function{
+			Stream: []op.OpCode{},
+		},
+		targetType: t,
+		scope: &SymbolTable{
+			Store: store,
+		},
+		scopeDepth: 0,
+		outer:      outer,
+	}
+}
+
+func (c *Compiler) EnterTarget() {
+	fmt.Println("Enter from ", c.target.function.Stream)
+	t := NewTarget(c.target)
+	// c.Declare("this")
+	c.target = t
+}
+
+func (c *Compiler) ExitTarget() int {
+	f := c.target.function
+	fmt.Println("Exited Scope: ", c.target.scope)
+	c.target = c.target.outer
+	c.constants = append(c.constants, f)
+	fmt.Println("Exited: ", f)
+	fmt.Println("Back to ", c.target.function.Stream)
+	return len(c.constants) - 1
 }
 
 func NewCompiler() *Compiler {
 	return &Compiler{
-		stream:    []op.OpCode{},
 		constants: []object.Object{},
 		globals:   []string{},
-		scope: &SymbolTable{
-			Store: []Symbol{},
-		},
-		scopeDepth: 0,
+		target:    NewTarget(nil),
 	}
 }
 
@@ -36,7 +90,7 @@ func (c *Compiler) AddConstant(o object.Object) int {
 
 func (c *Compiler) Declare(name string) {
 	scope := LocalScope
-	if c.scopeDepth == 0 {
+	if c.target.scopeDepth == 0 && c.target.targetType == SCRIPT_TARGET {
 		scope = GlobalScope
 		c.Emit(op.OpSetGlobal)
 
@@ -51,8 +105,8 @@ func (c *Compiler) Declare(name string) {
 	}
 	// No need to call set local because the expression results is already on the top of the stack. HEHE
 	// c.Emit(op.OpSetLocal)
-	for _, symbol := range c.scope.Store {
-		if symbol.Name == name && symbol.Depth == c.scopeDepth {
+	for _, symbol := range c.target.scope.Store {
+		if symbol.Name == name && symbol.Depth == c.target.scopeDepth {
 			panic(fmt.Errorf("Error: %v is already declared", name))
 		}
 	}
@@ -60,34 +114,34 @@ func (c *Compiler) Declare(name string) {
 	symbol := Symbol{
 		Name:  name,
 		Scope: scope,
-		Depth: c.scopeDepth,
+		Depth: c.target.scopeDepth,
 	}
-	c.scope.NumDefs++
-	c.scope.Store = append(c.scope.Store, symbol)
+	c.target.scope.NumDefs++
+	c.target.scope.Store = append(c.target.scope.Store, symbol)
 }
 
 func (c *Compiler) EnterScope() {
-	c.scopeDepth++
+	c.target.scopeDepth++
 }
 
 func (c *Compiler) ExitScope() {
-	if c.scopeDepth == 0 {
+	if c.target.scopeDepth == 0 {
 		panic("Error: Broken Compiler! Cannot Exit from global scope")
 	}
-	c.scopeDepth--
-	i := len(c.scope.Store) - 1
+	c.target.scopeDepth--
+	i := len(c.target.scope.Store) - 1
 	for ; i >= 0; i-- {
-		symbol := c.scope.Store[i]
-		if symbol.Depth <= c.scopeDepth {
+		symbol := c.target.scope.Store[i]
+		if symbol.Depth <= c.target.scopeDepth {
 			break
 		}
 		c.Emit(op.OpPop)
 	}
-	c.scope.Store = c.scope.Store[:i+1]
+	c.target.scope.Store = c.target.scope.Store[:i+1]
 }
 
 func (c *Compiler) GetSymbol(name token.Token, scope *SymbolTable) (*Symbol, int, error) {
-	if scope == nil || c.scopeDepth == 0 {
+	if scope == nil || c.target.scopeDepth == 0 {
 		return nil, 0, fmt.Errorf("Unable to resolve identifier: %v", name.Literal)
 		// panic(fmt.Errorf("Error: Unable to resolve identifier: %v", name.Literal))
 	}
@@ -101,12 +155,14 @@ func (c *Compiler) GetSymbol(name token.Token, scope *SymbolTable) (*Symbol, int
 }
 
 func (c *Compiler) GetIdentifier(name token.Token) {
-	if name.Literal == "k" {
-		fmt.Println(c.globals, c.scope, c.scopeDepth)
-		fmt.Println(c.stream)
+	if true {
+		fmt.Println(name, c.globals, c.target.scope, c.target.scopeDepth)
+		fmt.Println(name, c.target.function.Stream)
+
+		defer fmt.Println(c.target.function.Stream)
 	}
 
-	scope := c.scope
+	scope := c.target.scope
 
 	symbol, index, err := c.GetSymbol(name, scope)
 	if err == nil {
@@ -123,11 +179,12 @@ func (c *Compiler) GetIdentifier(name token.Token) {
 		c.Emit(op.OpCode(index))
 		return
 	}
+	log.Fatalf("Error: Undeclared Identifier: %v", name.Literal)
 	panic(fmt.Errorf("Error: Undeclared Identifier: %v", name.Literal))
 }
 
 func (c *Compiler) SetGlobal(name token.Token) {
-	scope := c.scope
+	scope := c.target.scope
 
 	symbol, index, err := c.GetSymbol(name, scope)
 	if err == nil {
@@ -149,25 +206,26 @@ func (c *Compiler) SetGlobal(name token.Token) {
 }
 
 func (c *Compiler) Emit(op op.OpCode) {
-	c.stream = append(c.stream, op)
+	// fmt.Println("Emit", op)
+	c.target.function.Stream = append(c.target.function.Stream, op)
 }
 
-func (c *Compiler) Compile(statements []parser.Declaration) ([]op.OpCode, []object.Object) {
+func (c *Compiler) Compile(statements []parser.Declaration) (object.Function, []object.Object) {
 	for _, statement := range statements {
 		statement.Emit(c)
 	}
 
-	return c.stream, c.constants
+	return c.target.function, c.constants
 }
 
 func (c *Compiler) SetOpCode(i int, op op.OpCode) {
-	c.stream[i] = op
+	c.target.function.Stream[i] = op
 }
 
 func (c *Compiler) GetOpCode(i int) op.OpCode {
-	return c.stream[i]
+	return c.target.function.Stream[i]
 }
 
 func (c *Compiler) GetBytecodeLength() int {
-	return len(c.stream)
+	return len(c.target.function.Stream)
 }

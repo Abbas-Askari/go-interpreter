@@ -26,7 +26,7 @@
 - [ ] Add Maps
 - [ ] Unify operation in Object module.
 
-  - Will add functions like Object.Add(a, b Object) Object
+  - Will add functions like Object.Add(a, b) instead of a.Add(b)
 
 ### Add Operators and expressions
 

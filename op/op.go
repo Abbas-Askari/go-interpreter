@@ -36,6 +36,9 @@ const (
 	OpBreak
 	OpContinue
 	OpMod
+	OpCall
+	OpNil
+	OpReturn
 )
 
 func (o OpCode) String() string {
@@ -73,6 +76,9 @@ func (o OpCode) String() string {
 		OpBreak:         "OpBreak",
 		OpContinue:      "OpContinue",
 		OpMod:           "OpMod",
+		OpCall:          "OpCall",
+		OpNil:           "OpNil",
+		OpReturn:        "OpReturn",
 	}
 	str, ok := opNames[o]
 	if !ok {

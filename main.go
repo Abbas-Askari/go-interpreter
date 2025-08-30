@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/for.test.lox"
+	filename := "/home/abbas/repos/interpreter-v2/func.test.lox"
 	// if len(os.Args) > 1 {
 	// 	filename = os.Args[1]
 	// }
@@ -32,12 +32,12 @@ func main() {
 
 	compiler := compiler.NewCompiler()
 
-	stream, constants := compiler.Compile(statements)
-	fmt.Println(stream, constants)
+	function, constants := compiler.Compile(statements)
+	fmt.Println(function, constants)
 
-	parser.Decompile(stream, constants)
+	parser.Decompile(function, constants)
 
-	vm := vm.NewVM(stream, constants)
+	vm := vm.NewVM(function, constants)
 	fmt.Println("----------Output----------")
 	vm.Run()
 	fmt.Println("--------------------------")
