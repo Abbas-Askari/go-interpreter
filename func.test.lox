@@ -1,8 +1,14 @@
-func hello(a1, a2, a3, a4) {
-    print a1;
-    print a2;
-    print a3;
-    print a4;
+func fact(t) {
+    if t == 0 return 1;
+    return fact(t-1) * t;
 }
 
-print 2 + hello(1, 2, 3, 4);
+func hello(x) {
+    if x == 0 {
+        return;
+    }
+    hello(x - 1);
+    print "Fact "+ "x" + ": " + fact(x);
+}
+
+hello(10);

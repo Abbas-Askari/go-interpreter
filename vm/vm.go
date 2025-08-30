@@ -68,14 +68,17 @@ func (vm *VM) Run() {
 	globals := []object.Object{}
 
 	frame := &vm.frames[0]
+	debug := false
 
 	for frame.ip != len(frame.function.Stream) {
 		opcode := frame.function.Stream[frame.ip]
-		// fmt.Println("Stack: ", vm.stack)
-		// // fmt.Println("Slots: ", frame.slots)
-		// fmt.Println("OpCode: ", opcode, "OpCOde int:", int(opcode))
-		// fmt.Println("Ip: ", frame.ip)
-		// fmt.Println("Frame: ", vm.frames)
+		if debug {
+			fmt.Println("Stack: ", vm.stack)
+			// // fmt.Println("Slots: ", frame.slots)
+			// fmt.Println("OpCode: ", opcode)
+			// fmt.Println("Ip: ", frame.ip)
+			// fmt.Println("Frame: ", vm.frames)
+		}
 		switch opcode {
 
 		case op.OpConstant:
@@ -215,9 +218,7 @@ func (vm *VM) Run() {
 				ip: 0,
 			}
 			vm.frames = append(vm.frames, newFrame)
-			frame = &newFrame
-			fmt.Println("CALL -> New Frame: ", newFrame)
-			fmt.Println("Stack: ", vm.stack)
+			frame = &vm.frames[len(vm.frames)-1]
 			continue
 
 		case op.OpNil:
@@ -225,12 +226,10 @@ func (vm *VM) Run() {
 
 		case op.OpReturn:
 			returned := vm.Pop()
-			// outer := vm.frames[len(vm.frames)-2]
-			// outer.slots = outer.slots[:len(outer.slots)-??len(frame.slots)]
 			vm.frames = vm.frames[:len(vm.frames)-1]
+			vm.stack = vm.stack[:frame.bp]
 			vm.Push(returned)
 			frame = &vm.frames[len(vm.frames)-1]
-			// continue
 
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)
@@ -239,7 +238,8 @@ func (vm *VM) Run() {
 
 		frame.ip++
 	}
-
-	fmt.Println("Stack: ", vm.stack)
+	if debug {
+		fmt.Println("Ending value of stack: ", vm.stack)
+	}
 
 }

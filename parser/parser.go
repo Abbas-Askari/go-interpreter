@@ -2,6 +2,7 @@ package parser
 
 import (
 	"Abbas-Askari/interpreter-v2/token"
+	"fmt"
 )
 
 type Parser struct {
@@ -113,6 +114,7 @@ func (p *Parser) Statement() Statement {
 			}
 		}
 		p.consumeIfExists(token.SEMICOLON)
+		fmt.Println(init, cond, adv, p.currentToken)
 		if !p.match(token.LBRACE) {
 			adv = p.Expression()
 		}
@@ -138,6 +140,13 @@ func (p *Parser) Statement() Statement {
 		p.consume(token.SEMICOLON, "Expected a semicolon")
 	} else if p.consumeIfExists(token.CONTINUE) {
 		statement = &ContinueStatement{}
+		p.consume(token.SEMICOLON, "Expected a semicolon")
+	} else if p.consumeIfExists(token.RETURN) {
+		var exp Expression = nil
+		if !p.match(token.SEMICOLON) {
+			exp = p.Expression()
+		}
+		statement = &ReturnStatement{exp: exp}
 		p.consume(token.SEMICOLON, "Expected a semicolon")
 	} else {
 		statement = ExpressionStatement{expression: p.Expression()}

@@ -48,6 +48,7 @@ func Tokenize(input string) []token.Token {
 		"else":     token.ELSE,
 		"break":    token.BREAK,
 		"continue": token.CONTINUE,
+		"return":   token.RETURN,
 	}
 
 	tokens := []token.Token{}

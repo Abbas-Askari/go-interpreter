@@ -216,15 +216,22 @@ type ReturnStatement struct {
 	exp Expression
 }
 
-func (b *ReturnStatement) Emit(c interfaces.ICompiler) {
-	c.Emit(op.OpReturn)
+func (r *ReturnStatement) Emit(c interfaces.ICompiler) {
+	if r.exp != nil {
+		r.exp.Emit(c)
+	} else {
+		c.Emit(op.OpNil)
+	}
 	c.Emit(op.OpReturn)
 }
 
-func (b ReturnStatement) String() string {
-	return fmt.Sprintf("Return: %v\n", b.exp)
+func (r ReturnStatement) String() string {
+	if r.exp != nil {
+		return fmt.Sprintf("Return: %v\n", r.exp)
+	}
+	return fmt.Sprintf("Return: <no expression>\n")
 }
 
-func (b ReturnStatement) Type() DeclarationType {
+func (r ReturnStatement) Type() DeclarationType {
 	return StatementDeclarationType
 }

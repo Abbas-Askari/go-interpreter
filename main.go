@@ -3,6 +3,7 @@ package main
 import (
 	"Abbas-Askari/interpreter-v2/compiler"
 	"Abbas-Askari/interpreter-v2/lexer"
+	"Abbas-Askari/interpreter-v2/object"
 	"Abbas-Askari/interpreter-v2/parser"
 	"Abbas-Askari/interpreter-v2/vm"
 	"fmt"
@@ -36,6 +37,13 @@ func main() {
 	fmt.Println(function, constants)
 
 	parser.Decompile(function, constants)
+
+	for _, c := range constants {
+		if fn, ok := c.(object.Function); ok {
+			fmt.Println("Function:")
+			parser.Decompile(fn, constants)
+		}
+	}
 
 	vm := vm.NewVM(function, constants)
 	fmt.Println("----------Output----------")

@@ -40,6 +40,7 @@ const (
 	RBRACE TokenType = "}"
 
 	FUNCTION TokenType = "FUNCTION"
+	RETURN   TokenType = "RETURN"
 	LET      TokenType = "LET"
 
 	TRUE  TokenType = "TRUE"
