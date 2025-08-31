@@ -6,7 +6,6 @@ import (
 	"Abbas-Askari/interpreter-v2/parser"
 	"Abbas-Askari/interpreter-v2/token"
 	"fmt"
-	"log"
 	"slices"
 )
 
@@ -239,7 +238,6 @@ func (c *Compiler) GetIdentifier(name token.Token) {
 		c.Emit(op.OpCode(index))
 		return
 	}
-	log.Fatalf("Error: Undeclared Identifier: %v", name.Literal)
 	panic(fmt.Errorf("Error: Undeclared Identifier: %v", name.Literal))
 }
 
@@ -251,6 +249,13 @@ func (c *Compiler) SetGlobal(name token.Token) {
 		if symbol.Depth != 0 {
 			c.Emit(op.OpSetLocal)
 		}
+		c.Emit(op.OpCode(index))
+		return
+	}
+
+	index, err = c.GetUpValue(name, c.target)
+	if err == nil {
+		c.Emit(op.OpSetUpValue)
 		c.Emit(op.OpCode(index))
 		return
 	}

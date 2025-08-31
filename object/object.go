@@ -11,6 +11,7 @@ const (
 	NIL      = "NIL"
 	FUNCTION = "FUNCTION"
 	CLOSURE  = "CLOSURE"
+	UPVALUE  = "UPVALUE"
 )
 
 type Object interface {

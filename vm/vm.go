@@ -71,14 +71,14 @@ func (vm *VM) Run() {
 	debug := false
 	stream := frame.closure.Function.Stream
 	for frame.ip != len(stream) {
-		stream := frame.closure.Function.Stream
+		stream = frame.closure.Function.Stream
 		opcode := stream[frame.ip]
 		if debug {
 			fmt.Println("Stack: ", vm.stack)
 			// // fmt.Println("Slots: ", frame.slots)
-			// fmt.Println("OpCode: ", opcode)
-			// fmt.Println("Ip: ", frame.ip)
-			// fmt.Println("Frame: ", vm.frames)
+			fmt.Println("OpCode: ", opcode)
+			fmt.Println("Ip: ", frame.ip)
+			fmt.Println("Frame: ", vm.frames)
 		}
 		switch opcode {
 
@@ -129,6 +129,11 @@ func (vm *VM) Run() {
 			frame.ip++
 			vm.stack[frame.bp+index] = vm.Peek()
 
+		case op.OpSetUpValue:
+			index := int(stream[frame.ip+1])
+			frame.ip++
+			*frame.closure.UpValues[index].Value = vm.Peek()
+
 		case op.OpLoadGlobal:
 			index := int(stream[frame.ip+1])
 			frame.ip++
@@ -138,6 +143,11 @@ func (vm *VM) Run() {
 			index := int(stream[frame.ip+1])
 			frame.ip++
 			vm.Push(vm.stack[frame.bp+index])
+
+		case op.OpGetUpValue:
+			index := int(stream[frame.ip+1])
+			frame.ip++
+			vm.Push(*frame.closure.UpValues[index].Value)
 
 		case op.OpJump:
 			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
@@ -205,7 +215,20 @@ func (vm *VM) Run() {
 			index := stream[frame.ip+1]
 			frame.ip++
 			f := vm.constants[index]
-			closure := object.Closure{Function: f.(object.Function)}
+			closure := object.NewClosure(f.(object.Function))
+			for i := 0; i < closure.Function.UpValueCount; i++ {
+				isLocal := stream[frame.ip+1]
+				frame.ip++
+				index := int(stream[frame.ip+1])
+				frame.ip++
+				if isLocal == 1 {
+					closure.UpValues = append(closure.UpValues, &object.UpValue{
+						Value: &vm.stack[frame.bp+index],
+					})
+				} else {
+					closure.UpValues = append(closure.UpValues, frame.closure.UpValues[index])
+				}
+			}
 			vm.Push(closure)
 
 		case op.OpCall:

@@ -38,9 +38,9 @@ func main() {
 
 	parser.Decompile(function, constants)
 
-	for _, c := range constants {
+	for i, c := range constants {
 		if fn, ok := c.(object.Function); ok {
-			fmt.Println("Function:")
+			fmt.Println("Function at constant index:", i)
 			parser.Decompile(fn, constants)
 		}
 	}
