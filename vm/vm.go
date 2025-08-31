@@ -8,15 +8,15 @@ import (
 )
 
 type CallFrame struct {
-	function object.Function
+	closure object.Closure
 	// slots    []object.Object
 	ip int
 	bp int
 }
 
 func (f CallFrame) String() string {
-	return fmt.Sprintf("CallFrame: { function: %v, ip: %d, bp: %d }",
-		f.function, f.ip, f.bp)
+	return fmt.Sprintf("CallFrame: { closure: %v, ip: %d, bp: %d }",
+		f.closure, f.ip, f.bp)
 }
 
 const (
@@ -24,10 +24,11 @@ const (
 )
 
 type VM struct {
-	frames    []CallFrame
-	constants []object.Object
-	stack     []object.Object
-	ip        int
+	frames       []CallFrame
+	constants    []object.Object
+	stack        []object.Object
+	ip           int
+	openUpValues []*object.UpValue
 }
 
 func NewVM(function object.Function, constants []object.Object) *VM {
@@ -35,7 +36,7 @@ func NewVM(function object.Function, constants []object.Object) *VM {
 
 	frames := []CallFrame{
 		{
-			function: function,
+			closure: object.Closure{Function: function},
 			// slots:    stack[:],
 			ip: 0,
 		},
@@ -63,26 +64,71 @@ func (vm *VM) Push(o object.Object) {
 	vm.stack = append(vm.stack, o)
 }
 
+func (vm *VM) CloseUpValues(last int) {
+	closedIndexes := []int{}
+	for i := len(vm.stack) - 1; i >= 0; i-- {
+		if i < last {
+			break
+		}
+		for _, upvalue := range vm.openUpValues {
+			if upvalue.Value != &vm.stack[i] {
+				continue
+			}
+			// Move the value from the stack to the closed field
+			// and point the upvalue to the closed field
+			upvalue.Closed = *upvalue.Value
+			upvalue.Value = &upvalue.Closed
+			closedIndexes = append(closedIndexes, i)
+		}
+	}
+
+	// Remove closed upvalues from the openUpValues list
+	newOpenUpValues := []*object.UpValue{}
+	for _, upvalue := range vm.openUpValues {
+		shouldClose := false
+		for _, closedIndex := range closedIndexes {
+			if upvalue.Value == &vm.stack[closedIndex] {
+				shouldClose = true
+				break
+			}
+		}
+		if !shouldClose {
+			newOpenUpValues = append(newOpenUpValues, upvalue)
+		}
+	}
+	vm.openUpValues = newOpenUpValues
+}
+
+func (vm *VM) CaptureUpValues(o *object.Object) *object.UpValue {
+	upvalue := &object.UpValue{
+		Value:  o,
+		Closed: nil,
+	}
+	vm.openUpValues = append(vm.openUpValues, upvalue)
+	return upvalue
+}
+
 func (vm *VM) Run() {
 
 	globals := []object.Object{}
 
 	frame := &vm.frames[0]
 	debug := false
-
-	for frame.ip != len(frame.function.Stream) {
-		opcode := frame.function.Stream[frame.ip]
+	stream := frame.closure.Function.Stream
+	for frame.ip != len(stream) {
+		opcode := stream[frame.ip]
 		if debug {
+			fmt.Print("=======================\n")
 			fmt.Println("Stack: ", vm.stack)
 			// // fmt.Println("Slots: ", frame.slots)
-			// fmt.Println("OpCode: ", opcode)
-			// fmt.Println("Ip: ", frame.ip)
-			// fmt.Println("Frame: ", vm.frames)
+			fmt.Println("OpCode: ", opcode)
+			fmt.Println("Ip: ", frame.ip)
+			fmt.Println("Frame: ", vm.frames)
 		}
 		switch opcode {
 
 		case op.OpConstant:
-			index := frame.function.Stream[frame.ip+1]
+			index := stream[frame.ip+1]
 			frame.ip++
 			constant := vm.constants[index]
 			vm.Push(constant)
@@ -115,7 +161,7 @@ func (vm *VM) Run() {
 			fmt.Println(o)
 
 		case op.OpSetGlobal:
-			index := int(frame.function.Stream[frame.ip+1])
+			index := int(stream[frame.ip+1])
 			frame.ip++
 			if index >= len(globals) {
 				globals = append(globals, vm.Peek())
@@ -124,27 +170,37 @@ func (vm *VM) Run() {
 			}
 
 		case op.OpSetLocal:
-			index := int(frame.function.Stream[frame.ip+1])
+			index := int(stream[frame.ip+1])
 			frame.ip++
 			vm.stack[frame.bp+index] = vm.Peek()
 
+		case op.OpSetUpValue:
+			index := int(stream[frame.ip+1])
+			frame.ip++
+			*frame.closure.UpValues[index].Value = vm.Peek()
+
 		case op.OpLoadGlobal:
-			index := int(frame.function.Stream[frame.ip+1])
+			index := int(stream[frame.ip+1])
 			frame.ip++
 			vm.Push(globals[index])
 
 		case op.OpLoadLocal:
-			index := int(frame.function.Stream[frame.ip+1])
+			index := int(stream[frame.ip+1])
 			frame.ip++
 			vm.Push(vm.stack[frame.bp+index])
 
+		case op.OpGetUpValue:
+			index := int(stream[frame.ip+1])
+			frame.ip++
+			vm.Push(*frame.closure.UpValues[index].Value)
+
 		case op.OpJump:
-			jumpLength := int(frame.function.Stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
+			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
 			frame.ip++
 			frame.ip += jumpLength
 
 		case op.OpJumpIfFalse:
-			jumpLength := int(frame.function.Stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
+			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
 			frame.ip++
 			boolean := vm.Pop()
 			if !boolean.GetTruthy().Value {
@@ -152,7 +208,7 @@ func (vm *VM) Run() {
 			}
 
 		case op.OpJumpIfTrue:
-			jumpLength := int(frame.function.Stream[frame.ip+1])
+			jumpLength := int(stream[frame.ip+1])
 			frame.ip++
 			boolean := vm.Pop()
 			if boolean.GetTruthy().Value {
@@ -200,29 +256,48 @@ func (vm *VM) Run() {
 		case op.OpContinue:
 			log.Fatal("Continue statement not in loop")
 
+		case op.OpClosure:
+			index := stream[frame.ip+1]
+			frame.ip++
+			f := vm.constants[index]
+			closure := object.NewClosure(f.(object.Function))
+			for i := 0; i < closure.Function.UpValueCount; i++ {
+				isLocal := stream[frame.ip+1]
+				frame.ip++
+				index := int(stream[frame.ip+1])
+				frame.ip++
+				if isLocal == 1 {
+					closure.UpValues = append(closure.UpValues, vm.CaptureUpValues(&vm.stack[frame.bp+index]))
+				} else {
+					closure.UpValues = append(closure.UpValues, frame.closure.UpValues[index])
+				}
+			}
+			vm.Push(closure)
+
 		case op.OpCall:
-			argCount := int(frame.function.Stream[frame.ip+1])
+			argCount := int(stream[frame.ip+1])
 			frame.ip++
 
 			// callee := vm.stack[frame.bp+len(vm.stack)-1-argCount]
 			callee := vm.Pop()
-			fn, ok := callee.(object.Function)
+			fn, ok := callee.(object.Closure)
 			if !ok {
 				log.Fatal("Can only call functions. Got: ", callee.Type())
 			}
 
-			if argCount != fn.Arity {
-				log.Fatalf("Wrong number of arguments. Expected %d, got %d\n", fn.Arity, argCount)
+			if argCount != fn.Function.Arity {
+				log.Fatalf("Wrong number of arguments. Expected %d, got %d\n", fn.Function.Arity, argCount)
 			}
 
 			newFrame := CallFrame{
-				function: fn,
-				bp:       len(vm.stack) - argCount,
+				closure: fn,
+				bp:      len(vm.stack) - argCount,
 				// slots:    vm.stack[frame.bp+len(frame.slots)-argCount:], // pass the arguments and the space for local variables
 				ip: 0,
 			}
 			vm.frames = append(vm.frames, newFrame)
 			frame = &vm.frames[len(vm.frames)-1]
+			stream = frame.closure.Function.Stream
 			continue
 
 		case op.OpNil:
@@ -231,9 +306,15 @@ func (vm *VM) Run() {
 		case op.OpReturn:
 			returned := vm.Pop()
 			vm.frames = vm.frames[:len(vm.frames)-1]
+			vm.CloseUpValues(frame.bp)
 			vm.stack = vm.stack[:frame.bp]
 			vm.Push(returned)
 			frame = &vm.frames[len(vm.frames)-1]
+			stream = frame.closure.Function.Stream
+
+		case op.OpCloseUpValue:
+			vm.CloseUpValues(len(vm.stack) - 1)
+			vm.Pop()
 
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)

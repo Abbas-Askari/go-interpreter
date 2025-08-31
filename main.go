@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/func.test.lox"
+	filename := "/home/abbas/repos/interpreter-v2/closures.test.lox"
 	// if len(os.Args) > 1 {
 	// 	filename = os.Args[1]
 	// }
@@ -38,9 +38,9 @@ func main() {
 
 	parser.Decompile(function, constants)
 
-	for _, c := range constants {
+	for i, c := range constants {
 		if fn, ok := c.(object.Function); ok {
-			fmt.Println("Function:")
+			fmt.Println("Function at constant index:", i)
 			parser.Decompile(fn, constants)
 		}
 	}

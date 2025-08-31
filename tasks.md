@@ -50,6 +50,13 @@
 - [x] Add break and continue
 - [ ] Fix break and continue bug which can occur if some other part of the AST emits bytecode of OpBreak 2 times as operands.
 - [x] Fix operator precedence
+- [x] Add functions
+- [x] Add return statements
+- [ ] Add closures
+- [ ] Add Maps
+- [ ] Add Arrays
+- [ ] Add Prototypal inheritance
+- [ ] Add File Modules with imports and exports
 
 ### better errors
 

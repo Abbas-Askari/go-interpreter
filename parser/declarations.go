@@ -48,7 +48,7 @@ type FunctionDeclaration struct {
 }
 
 func (d *FunctionDeclaration) Emit(c interfaces.ICompiler) {
-	c.Emit(op.OpConstant)
+	c.Emit(op.OpClosure)
 	c.Emit(op.OpCode(0))
 	indexIndex := c.GetBytecodeLength() - 1
 	c.Declare(d.name.Literal)
