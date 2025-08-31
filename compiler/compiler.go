@@ -153,7 +153,11 @@ func (c *Compiler) ExitScope() {
 		if symbol.Depth <= c.target.scopeDepth {
 			break
 		}
-		c.Emit(op.OpPop)
+		if symbol.isCaptured {
+			c.Emit(op.OpCloseUpValue)
+		} else {
+			c.Emit(op.OpPop)
+		}
 	}
 	c.target.scope.Store = c.target.scope.Store[:i+1]
 }
@@ -190,14 +194,16 @@ func (c *Compiler) GetUpValue(name token.Token, target *Target) (int, error) {
 
 	_, index, err := c.GetLocal(name, target.outer.scope)
 	if err == nil {
-		target.addUpValue(index, true)
-		return index, nil
+		target.outer.scope.Store[index].isCaptured = true
+		fmt.Println("Captured", target.outer.scope.Store[index])
+		i := target.addUpValue(index, true)
+		return i, nil
 	}
 
 	index, err = c.GetUpValue(name, target.outer)
 	if err == nil {
-		target.addUpValue(index, false)
-		return index, nil
+		i := target.addUpValue(index, false)
+		return i, nil
 	}
 
 	return 0, fmt.Errorf("Unable to resolve identifier: %v", name.Literal)

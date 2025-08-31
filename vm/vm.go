@@ -24,10 +24,11 @@ const (
 )
 
 type VM struct {
-	frames    []CallFrame
-	constants []object.Object
-	stack     []object.Object
-	ip        int
+	frames       []CallFrame
+	constants    []object.Object
+	stack        []object.Object
+	ip           int
+	openUpValues []*object.UpValue
 }
 
 func NewVM(function object.Function, constants []object.Object) *VM {
@@ -61,6 +62,50 @@ func (vm *VM) Peek() object.Object {
 
 func (vm *VM) Push(o object.Object) {
 	vm.stack = append(vm.stack, o)
+}
+
+func (vm *VM) CloseUpValues(last int) {
+	closedIndexes := []int{}
+	for i := len(vm.stack) - 1; i >= 0; i-- {
+		if i < last {
+			break
+		}
+		for _, upvalue := range vm.openUpValues {
+			if upvalue.Value != &vm.stack[i] {
+				continue
+			}
+			// Move the value from the stack to the closed field
+			// and point the upvalue to the closed field
+			upvalue.Closed = *upvalue.Value
+			upvalue.Value = &upvalue.Closed
+			closedIndexes = append(closedIndexes, i)
+		}
+	}
+
+	// Remove closed upvalues from the openUpValues list
+	newOpenUpValues := []*object.UpValue{}
+	for _, upvalue := range vm.openUpValues {
+		shouldClose := false
+		for _, closedIndex := range closedIndexes {
+			if upvalue.Value == &vm.stack[closedIndex] {
+				shouldClose = true
+				break
+			}
+		}
+		if !shouldClose {
+			newOpenUpValues = append(newOpenUpValues, upvalue)
+		}
+	}
+	vm.openUpValues = newOpenUpValues
+}
+
+func (vm *VM) CaptureUpValues(o *object.Object) *object.UpValue {
+	upvalue := &object.UpValue{
+		Value:  o,
+		Closed: nil,
+	}
+	vm.openUpValues = append(vm.openUpValues, upvalue)
+	return upvalue
 }
 
 func (vm *VM) Run() {
@@ -222,9 +267,7 @@ func (vm *VM) Run() {
 				index := int(stream[frame.ip+1])
 				frame.ip++
 				if isLocal == 1 {
-					closure.UpValues = append(closure.UpValues, &object.UpValue{
-						Value: &vm.stack[frame.bp+index],
-					})
+					closure.UpValues = append(closure.UpValues, vm.CaptureUpValues(&vm.stack[frame.bp+index]))
 				} else {
 					closure.UpValues = append(closure.UpValues, frame.closure.UpValues[index])
 				}
@@ -263,10 +306,15 @@ func (vm *VM) Run() {
 		case op.OpReturn:
 			returned := vm.Pop()
 			vm.frames = vm.frames[:len(vm.frames)-1]
+			vm.CloseUpValues(frame.bp)
 			vm.stack = vm.stack[:frame.bp]
 			vm.Push(returned)
 			frame = &vm.frames[len(vm.frames)-1]
 			stream = frame.closure.Function.Stream
+
+		case op.OpCloseUpValue:
+			vm.CloseUpValues(len(vm.stack) - 1)
+			vm.Pop()
 
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)

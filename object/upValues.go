@@ -5,11 +5,15 @@ import (
 )
 
 type UpValue struct {
-	Value *Object
+	Value  *Object
+	Closed Object
 }
 
 func (b UpValue) String() string {
-	return fmt.Sprintf("UPVALUE<%v>", b.Value)
+	if b.Value == nil {
+		return fmt.Sprintf("UPVALUE<closed: %v>", b.Closed)
+	}
+	return fmt.Sprintf("UPVALUE<%p>", b.Value)
 }
 
 func (b UpValue) Type() ObjectType {

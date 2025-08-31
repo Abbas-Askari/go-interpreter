@@ -9,9 +9,10 @@ const (
 )
 
 type Symbol struct {
-	Name  string
-	Scope SymbolScope
-	Depth int // position in globals array OR stack slot
+	Name       string
+	Scope      SymbolScope
+	Depth      int // position in globals array OR stack slot
+	isCaptured bool
 }
 
 type SymbolTable struct {
