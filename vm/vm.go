@@ -71,9 +71,9 @@ func (vm *VM) Run() {
 	debug := false
 	stream := frame.closure.Function.Stream
 	for frame.ip != len(stream) {
-		stream = frame.closure.Function.Stream
 		opcode := stream[frame.ip]
 		if debug {
+			fmt.Print("=======================\n")
 			fmt.Println("Stack: ", vm.stack)
 			// // fmt.Println("Slots: ", frame.slots)
 			fmt.Println("OpCode: ", opcode)
@@ -254,6 +254,7 @@ func (vm *VM) Run() {
 			}
 			vm.frames = append(vm.frames, newFrame)
 			frame = &vm.frames[len(vm.frames)-1]
+			stream = frame.closure.Function.Stream
 			continue
 
 		case op.OpNil:
@@ -265,6 +266,7 @@ func (vm *VM) Run() {
 			vm.stack = vm.stack[:frame.bp]
 			vm.Push(returned)
 			frame = &vm.frames[len(vm.frames)-1]
+			stream = frame.closure.Function.Stream
 
 		default:
 			log.Fatal("Unknown OpCode: ", opcode)

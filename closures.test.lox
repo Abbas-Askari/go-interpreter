@@ -1,24 +1,10 @@
-let x = "global";
-func outer() {
-  let x = "outer";
-  func inner() {
-    print x;
-    x = x + " changed from inner";
-    print x;
-  }
-
-  func next() {
-    print x;
-    x = x + 'changed from next';
-    print x;
-  }
-
-
-  inner();
-  print x;
-  next();
-  inner();
-  print x;
-  return x;
+func makeCounter(x) {
+    func count() {
+        print x;
+    }
+    return count;
 }
-print "Func returns " + outer();
+
+let c = makeCounter(5);
+print c;
+c();
