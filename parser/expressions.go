@@ -18,6 +18,7 @@ const (
 	IDENTIFIER_EXPRESSION = "IDENTIFIER_EXPRESSION"
 	ASSIGNMENT_EXPRESSION = "ASSIGNMENT_EXPRESSION"
 	UNARY_EXPRESSION      = "UNARY_EXPRESSION"
+	CALL_EXPRESSION       = "CALL_EXPRESSION"
 )
 
 type Expression interface {
@@ -166,4 +167,26 @@ func (l *AssignmentExpression) String() string {
 func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
 	l.assignment.Emit(c)
 	c.SetGlobal(l.assignee.token)
+}
+
+type CallExpression struct {
+	callee    IdentifierExpression
+	arguments []Expression
+}
+
+// func (l *CallExpression) GetType() ExpressionType {
+// 	return IDENTIFIER_EXPRESSION
+// }
+
+func (l *CallExpression) String() string {
+	return fmt.Sprintf("%v(%v = %v)", colors.Colorize(CALL_EXPRESSION, colors.BLUE), l.callee, l.arguments)
+}
+
+func (l *CallExpression) Emit(c interfaces.ICompiler) {
+	for _, arg := range l.arguments {
+		arg.Emit(c)
+	}
+	l.callee.Emit(c)
+	c.Emit(op.OpCall)
+	c.Emit(op.OpCode(len(l.arguments)))
 }

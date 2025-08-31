@@ -3,6 +3,7 @@ package main
 import (
 	"Abbas-Askari/interpreter-v2/compiler"
 	"Abbas-Askari/interpreter-v2/lexer"
+	"Abbas-Askari/interpreter-v2/object"
 	"Abbas-Askari/interpreter-v2/parser"
 	"Abbas-Askari/interpreter-v2/vm"
 	"fmt"
@@ -10,7 +11,7 @@ import (
 )
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/for.test.lox"
+	filename := "/home/abbas/repos/interpreter-v2/func.test.lox"
 	// if len(os.Args) > 1 {
 	// 	filename = os.Args[1]
 	// }
@@ -32,12 +33,19 @@ func main() {
 
 	compiler := compiler.NewCompiler()
 
-	stream, constants := compiler.Compile(statements)
-	fmt.Println(stream, constants)
+	function, constants := compiler.Compile(statements)
+	fmt.Println(function, constants)
 
-	parser.Decompile(stream, constants)
+	parser.Decompile(function, constants)
 
-	vm := vm.NewVM(stream, constants)
+	for _, c := range constants {
+		if fn, ok := c.(object.Function); ok {
+			fmt.Println("Function:")
+			parser.Decompile(fn, constants)
+		}
+	}
+
+	vm := vm.NewVM(function, constants)
 	fmt.Println("----------Output----------")
 	vm.Run()
 	fmt.Println("--------------------------")

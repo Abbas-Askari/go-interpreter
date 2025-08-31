@@ -34,12 +34,13 @@ func Tokenize(input string) []token.Token {
 		{"{", token.LBRACE},
 		{"}", token.RBRACE},
 		{"%", token.PERCENT},
+		{",", token.COMMA},
 	}
 
 	keywords := map[string]token.TokenType{
 		"true":     token.TRUE,
 		"false":    token.FALSE,
-		"fun":      token.FUNCTION,
+		"func":     token.FUNCTION,
 		"print":    token.PRINT,
 		"let":      token.LET,
 		"if":       token.IF,
@@ -47,6 +48,7 @@ func Tokenize(input string) []token.Token {
 		"else":     token.ELSE,
 		"break":    token.BREAK,
 		"continue": token.CONTINUE,
+		"return":   token.RETURN,
 	}
 
 	tokens := []token.Token{}
@@ -86,6 +88,13 @@ func Tokenize(input string) []token.Token {
 
 			if test != str {
 				continue
+			}
+
+			if i+len(str) < len(input) {
+				nextCharacter := rune(input[i+len(str)])
+				if unicode.IsDigit(nextCharacter) || unicode.IsLetter(nextCharacter) || nextCharacter == '_' {
+					continue
+				}
 			}
 
 			tokens = append(tokens, token.Token{

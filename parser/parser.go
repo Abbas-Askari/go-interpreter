@@ -41,6 +41,39 @@ func (p *Parser) Declaration() Declaration {
 			name: name, expression: exp,
 		}
 		p.consume(token.SEMICOLON, "Expected a semicolon")
+	} else if p.consumeIfExists(token.FUNCTION) {
+		name := p.currentToken
+		p.move()
+		p.consume(token.LPAREN, "Expected '(' after function name")
+		parameters := []IdentifierExpression{}
+		if !p.consumeIfExists(token.RPAREN) {
+			param, ok := p.Expression().(*IdentifierExpression)
+			if !ok {
+				panic("Expected parameter name")
+			}
+			parameters = append(parameters, *param)
+			for p.consumeIfExists(token.COMMA) {
+				param, ok := p.Expression().(*IdentifierExpression)
+				if !ok {
+					panic("Expected parameter name")
+				}
+				parameters = append(parameters, *param)
+			}
+		}
+		p.consume(token.RPAREN, "Expected ')' after argument list")
+		p.consume(token.LBRACE, "Expected '{' after argument list")
+		declarations := []Declaration{}
+		for !p.consumeIfExists(token.RBRACE) {
+			declarations = append(declarations, p.Declaration())
+		}
+		// if p.index == len(p.tokens) &&
+		block := BlockStatement{
+			declarations: declarations,
+		}
+		statement = &FunctionDeclaration{
+			name: name, body: block,
+			parameters: parameters,
+		}
 	} else {
 		statement = p.Statement()
 	}
@@ -67,7 +100,6 @@ func (p *Parser) Statement() Statement {
 		statement = &ifStatement
 
 	} else if p.consumeIfExists(token.FOR) {
-		fmt.Println("BUILDING FOR LOOP")
 		var init Declaration = nil
 		var cond Expression = nil
 		var adv Expression = nil
@@ -82,18 +114,16 @@ func (p *Parser) Statement() Statement {
 			}
 		}
 		p.consumeIfExists(token.SEMICOLON)
+		fmt.Println(init, cond, adv, p.currentToken)
 		if !p.match(token.LBRACE) {
 			adv = p.Expression()
 		}
-		fmt.Println(init)
-		fmt.Println(cond)
 		statement = &ForStatement{
 			initialization: init,
 			condition:      cond,
 			advancement:    adv,
 			body:           p.Statement(),
 		}
-		fmt.Println(statement)
 	} else if p.consumeIfExists(token.LBRACE) {
 		declarations := []Declaration{}
 		for !p.consumeIfExists(token.RBRACE) {
@@ -110,6 +140,13 @@ func (p *Parser) Statement() Statement {
 		p.consume(token.SEMICOLON, "Expected a semicolon")
 	} else if p.consumeIfExists(token.CONTINUE) {
 		statement = &ContinueStatement{}
+		p.consume(token.SEMICOLON, "Expected a semicolon")
+	} else if p.consumeIfExists(token.RETURN) {
+		var exp Expression = nil
+		if !p.match(token.SEMICOLON) {
+			exp = p.Expression()
+		}
+		statement = &ReturnStatement{exp: exp}
 		p.consume(token.SEMICOLON, "Expected a semicolon")
 	} else {
 		statement = ExpressionStatement{expression: p.Expression()}
