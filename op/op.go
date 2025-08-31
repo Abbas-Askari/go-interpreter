@@ -40,6 +40,8 @@ const (
 	OpNil
 	OpReturn
 	OpClosure
+	OpGetUpValue
+	OpSetUpValue
 )
 
 func (o OpCode) String() string {
@@ -81,6 +83,8 @@ func (o OpCode) String() string {
 		OpNil:           "Nil",
 		OpReturn:        "Return",
 		OpClosure:       "Closure",
+		OpGetUpValue:    "GetUpValue",
+		OpSetUpValue:    "SetUpValue",
 	}
 	str, ok := opNames[o]
 	if !ok {

@@ -6,9 +6,10 @@ import (
 )
 
 type Function struct {
-	Value  string
-	Stream []op.OpCode
-	Arity  int
+	Value        string
+	Stream       []op.OpCode
+	Arity        int
+	UpValueCount int
 }
 
 func (b Function) String() string {

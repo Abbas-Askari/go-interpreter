@@ -24,12 +24,18 @@ const (
 	SCRIPT_TARGET
 )
 
+type UpValue struct {
+	Index   int
+	IsLocal bool
+}
+
 type Target struct {
 	function   object.Function
 	targetType TargetType
 
 	scope      *SymbolTable
 	scopeDepth int
+	upValues   []UpValue
 
 	outer *Target
 }
@@ -69,10 +75,22 @@ func (c *Compiler) ExitTarget(arity int) int {
 	f := c.target.function
 	f.Arity = arity
 	fmt.Println("Exited Scope: ", c.target.scope)
+	upvalues := c.target.upValues
+	f.UpValueCount = len(upvalues)
 	c.target = c.target.outer
 	c.constants = append(c.constants, f)
 	fmt.Println("Exited: ", f)
 	fmt.Println("Back to ", c.target.function.Stream)
+	for _, upValue := range upvalues {
+		local := 0
+		if upValue.IsLocal {
+			local = 1
+		}
+		c.Emit(op.OpCode(local))
+		c.Emit(op.OpCode(upValue.Index))
+		fmt.Println("UpValue: ", upValue)
+		fmt.Println("Stream so far: ", f.Stream)
+	}
 	return len(c.constants) - 1
 }
 
@@ -141,7 +159,7 @@ func (c *Compiler) ExitScope() {
 	c.target.scope.Store = c.target.scope.Store[:i+1]
 }
 
-func (c *Compiler) GetSymbol(name token.Token, scope *SymbolTable) (*Symbol, int, error) {
+func (c *Compiler) GetLocal(name token.Token, scope *SymbolTable) (*Symbol, int, error) {
 	if scope == nil || c.target.scopeDepth == 0 {
 		return nil, 0, fmt.Errorf("Unable to resolve identifier: %v", name.Literal)
 		// panic(fmt.Errorf("Error: Unable to resolve identifier: %v", name.Literal))
@@ -152,20 +170,52 @@ func (c *Compiler) GetSymbol(name token.Token, scope *SymbolTable) (*Symbol, int
 			return &symbol, i, nil
 		}
 	}
-	return c.GetSymbol(name, scope.Outer)
+	return c.GetLocal(name, scope.Outer)
+}
+
+func (t *Target) addUpValue(index int, isLocal bool) int {
+	for i, upValue := range t.upValues {
+		if upValue.Index == index && upValue.IsLocal == isLocal {
+			return i
+		}
+	}
+	t.upValues = append(t.upValues, UpValue{Index: index, IsLocal: isLocal})
+	return len(t.upValues) - 1
+}
+
+func (c *Compiler) GetUpValue(name token.Token, target *Target) (int, error) {
+	if target.outer == nil {
+		return 0, fmt.Errorf("Unable to resolve identifier: %v", name.Literal)
+		// panic(fmt.Errorf("Error: Unable to resolve identifier: %v", name.Literal))
+	}
+
+	_, index, err := c.GetLocal(name, target.outer.scope)
+	if err == nil {
+		target.addUpValue(index, true)
+		return index, nil
+	}
+
+	index, err = c.GetUpValue(name, target.outer)
+	if err == nil {
+		target.addUpValue(index, false)
+		return index, nil
+	}
+
+	return 0, fmt.Errorf("Unable to resolve identifier: %v", name.Literal)
 }
 
 func (c *Compiler) GetIdentifier(name token.Token) {
-	if true {
-		fmt.Println(name, c.globals, c.target.scope, c.target.scopeDepth)
-		fmt.Println(name, c.target.function.Stream)
+	// if true {
+	// 	fmt.Println(name, c.globals, c.target.scope, c.target.scopeDepth)
+	// 	fmt.Println(name, c.target.function.Stream)
 
-		defer fmt.Println(c.target.function.Stream)
-	}
+	// 	defer fmt.Println(c.target.function.Stream)
+	// }
 
 	scope := c.target.scope
 
-	symbol, index, err := c.GetSymbol(name, scope)
+	// Check local scope first
+	symbol, index, err := c.GetLocal(name, scope)
 	if err == nil {
 		if symbol.Depth != 0 {
 			c.Emit(op.OpLoadLocal)
@@ -174,6 +224,15 @@ func (c *Compiler) GetIdentifier(name token.Token) {
 		return
 	}
 
+	// Check upvalues
+	index, err = c.GetUpValue(name, c.target)
+	if err == nil {
+		c.Emit(op.OpGetUpValue)
+		c.Emit(op.OpCode(index))
+		return
+	}
+
+	// Then check globals
 	index = slices.Index(c.globals, name.Literal)
 	if index != -1 {
 		c.Emit(op.OpLoadGlobal)
@@ -187,7 +246,7 @@ func (c *Compiler) GetIdentifier(name token.Token) {
 func (c *Compiler) SetGlobal(name token.Token) {
 	scope := c.target.scope
 
-	symbol, index, err := c.GetSymbol(name, scope)
+	symbol, index, err := c.GetLocal(name, scope)
 	if err == nil {
 		if symbol.Depth != 0 {
 			c.Emit(op.OpSetLocal)
