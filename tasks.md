@@ -54,7 +54,9 @@
 - [x] Add return statements
 - [ ] Add closures
 - [ ] Add Maps
+  - [ ] Test with closures
 - [ ] Add Arrays
+  - [ ] Test returning an array of closures closing over a loop variable
 - [ ] Add Prototypal inheritance
 - [ ] Add File Modules with imports and exports
 
