@@ -65,8 +65,9 @@ func (c *Compiler) EnterTarget() {
 	c.target = t
 }
 
-func (c *Compiler) ExitTarget() int {
+func (c *Compiler) ExitTarget(arity int) int {
 	f := c.target.function
+	f.Arity = arity
 	fmt.Println("Exited Scope: ", c.target.scope)
 	c.target = c.target.outer
 	c.constants = append(c.constants, f)

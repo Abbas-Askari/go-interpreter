@@ -8,6 +8,7 @@ import (
 type Function struct {
 	Value  string
 	Stream []op.OpCode
+	Arity  int
 }
 
 func (b Function) String() string {

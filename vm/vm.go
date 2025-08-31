@@ -211,6 +211,10 @@ func (vm *VM) Run() {
 				log.Fatal("Can only call functions. Got: ", callee.Type())
 			}
 
+			if argCount != fn.Arity {
+				log.Fatalf("Wrong number of arguments. Expected %d, got %d\n", fn.Arity, argCount)
+			}
+
 			newFrame := CallFrame{
 				function: fn,
 				bp:       len(vm.stack) - argCount,

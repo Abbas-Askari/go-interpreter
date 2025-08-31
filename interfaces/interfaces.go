@@ -18,5 +18,5 @@ type ICompiler interface {
 	ExitScope()
 	GetBytecodeLength() int
 	EnterTarget()
-	ExitTarget() int
+	ExitTarget(arity int) int
 }

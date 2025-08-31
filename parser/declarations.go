@@ -62,7 +62,7 @@ func (d *FunctionDeclaration) Emit(c interfaces.ICompiler) {
 	c.Emit(op.OpNil)
 	c.Emit(op.OpReturn)
 	// d.expression.Emit(c)
-	index := c.ExitTarget()
+	index := c.ExitTarget(len(d.parameters))
 	c.SetOpCode(indexIndex, op.OpCode(index))
 }
 
