@@ -46,7 +46,7 @@ func (p *Parser) Declaration() Declaration {
 		p.move()
 		p.consume(token.LPAREN, "Expected '(' after function name")
 		parameters := []IdentifierExpression{}
-		if !p.consumeIfExists(token.RPAREN) {
+		if p.currentToken.Type != token.RPAREN {
 			param, ok := p.Expression().(*IdentifierExpression)
 			if !ok {
 				panic("Expected parameter name")

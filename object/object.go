@@ -10,6 +10,7 @@ const (
 	STRING   = "STRING"
 	NIL      = "NIL"
 	FUNCTION = "FUNCTION"
+	CLOSURE  = "CLOSURE"
 )
 
 type Object interface {

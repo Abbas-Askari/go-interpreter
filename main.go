@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/func.test.lox"
+	filename := "/home/abbas/repos/interpreter-v2/closures.test.lox"
 	// if len(os.Args) > 1 {
 	// 	filename = os.Args[1]
 	// }

@@ -8,15 +8,15 @@ import (
 )
 
 type CallFrame struct {
-	function object.Function
+	closure object.Closure
 	// slots    []object.Object
 	ip int
 	bp int
 }
 
 func (f CallFrame) String() string {
-	return fmt.Sprintf("CallFrame: { function: %v, ip: %d, bp: %d }",
-		f.function, f.ip, f.bp)
+	return fmt.Sprintf("CallFrame: { closure: %v, ip: %d, bp: %d }",
+		f.closure, f.ip, f.bp)
 }
 
 const (
@@ -35,7 +35,7 @@ func NewVM(function object.Function, constants []object.Object) *VM {
 
 	frames := []CallFrame{
 		{
-			function: function,
+			closure: object.Closure{Function: function},
 			// slots:    stack[:],
 			ip: 0,
 		},
@@ -69,9 +69,10 @@ func (vm *VM) Run() {
 
 	frame := &vm.frames[0]
 	debug := false
-
-	for frame.ip != len(frame.function.Stream) {
-		opcode := frame.function.Stream[frame.ip]
+	stream := frame.closure.Function.Stream
+	for frame.ip != len(stream) {
+		stream := frame.closure.Function.Stream
+		opcode := stream[frame.ip]
 		if debug {
 			fmt.Println("Stack: ", vm.stack)
 			// // fmt.Println("Slots: ", frame.slots)
@@ -82,7 +83,7 @@ func (vm *VM) Run() {
 		switch opcode {
 
 		case op.OpConstant:
-			index := frame.function.Stream[frame.ip+1]
+			index := stream[frame.ip+1]
 			frame.ip++
 			constant := vm.constants[index]
 			vm.Push(constant)
@@ -115,7 +116,7 @@ func (vm *VM) Run() {
 			fmt.Println(o)
 
 		case op.OpSetGlobal:
-			index := int(frame.function.Stream[frame.ip+1])
+			index := int(stream[frame.ip+1])
 			frame.ip++
 			if index >= len(globals) {
 				globals = append(globals, vm.Peek())
@@ -124,27 +125,27 @@ func (vm *VM) Run() {
 			}
 
 		case op.OpSetLocal:
-			index := int(frame.function.Stream[frame.ip+1])
+			index := int(stream[frame.ip+1])
 			frame.ip++
 			vm.stack[frame.bp+index] = vm.Peek()
 
 		case op.OpLoadGlobal:
-			index := int(frame.function.Stream[frame.ip+1])
+			index := int(stream[frame.ip+1])
 			frame.ip++
 			vm.Push(globals[index])
 
 		case op.OpLoadLocal:
-			index := int(frame.function.Stream[frame.ip+1])
+			index := int(stream[frame.ip+1])
 			frame.ip++
 			vm.Push(vm.stack[frame.bp+index])
 
 		case op.OpJump:
-			jumpLength := int(frame.function.Stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
+			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
 			frame.ip++
 			frame.ip += jumpLength
 
 		case op.OpJumpIfFalse:
-			jumpLength := int(frame.function.Stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
+			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
 			frame.ip++
 			boolean := vm.Pop()
 			if !boolean.GetTruthy().Value {
@@ -152,7 +153,7 @@ func (vm *VM) Run() {
 			}
 
 		case op.OpJumpIfTrue:
-			jumpLength := int(frame.function.Stream[frame.ip+1])
+			jumpLength := int(stream[frame.ip+1])
 			frame.ip++
 			boolean := vm.Pop()
 			if boolean.GetTruthy().Value {
@@ -200,24 +201,31 @@ func (vm *VM) Run() {
 		case op.OpContinue:
 			log.Fatal("Continue statement not in loop")
 
+		case op.OpClosure:
+			index := stream[frame.ip+1]
+			frame.ip++
+			f := vm.constants[index]
+			closure := object.Closure{Function: f.(object.Function)}
+			vm.Push(closure)
+
 		case op.OpCall:
-			argCount := int(frame.function.Stream[frame.ip+1])
+			argCount := int(stream[frame.ip+1])
 			frame.ip++
 
 			// callee := vm.stack[frame.bp+len(vm.stack)-1-argCount]
 			callee := vm.Pop()
-			fn, ok := callee.(object.Function)
+			fn, ok := callee.(object.Closure)
 			if !ok {
 				log.Fatal("Can only call functions. Got: ", callee.Type())
 			}
 
-			if argCount != fn.Arity {
-				log.Fatalf("Wrong number of arguments. Expected %d, got %d\n", fn.Arity, argCount)
+			if argCount != fn.Function.Arity {
+				log.Fatalf("Wrong number of arguments. Expected %d, got %d\n", fn.Function.Arity, argCount)
 			}
 
 			newFrame := CallFrame{
-				function: fn,
-				bp:       len(vm.stack) - argCount,
+				closure: fn,
+				bp:      len(vm.stack) - argCount,
 				// slots:    vm.stack[frame.bp+len(frame.slots)-argCount:], // pass the arguments and the space for local variables
 				ip: 0,
 			}
