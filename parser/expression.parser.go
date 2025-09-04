@@ -121,11 +121,11 @@ func (p *Parser) Unary() Expression {
 
 func (p *Parser) LiteralExpression() Expression {
 	if p.currentToken.Type == token.IDENTIFIER {
-		exp := &IdentifierExpression{
+		var exp Expression = &IdentifierExpression{
 			token: p.currentToken,
 		}
 		p.move()
-		if p.consumeIfExists(token.LPAREN) {
+		for p.consumeIfExists(token.LPAREN) {
 			// Function Call
 			args := []Expression{}
 			if !p.consumeIfExists(token.RPAREN) {
@@ -137,8 +137,8 @@ func (p *Parser) LiteralExpression() Expression {
 					p.consume(token.COMMA, "Expected ',' between function call arguments")
 				}
 			}
-			return &CallExpression{
-				callee:    *exp,
+			exp = &CallExpression{
+				callee:    exp,
 				arguments: args,
 			}
 		}
