@@ -170,7 +170,7 @@ func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
 }
 
 type CallExpression struct {
-	callee    IdentifierExpression
+	callee    Expression
 	arguments []Expression
 }
 
@@ -183,10 +183,10 @@ func (l *CallExpression) String() string {
 }
 
 func (l *CallExpression) Emit(c interfaces.ICompiler) {
+	l.callee.Emit(c)
 	for _, arg := range l.arguments {
 		arg.Emit(c)
 	}
-	l.callee.Emit(c)
 	c.Emit(op.OpCall)
 	c.Emit(op.OpCode(len(l.arguments)))
 }

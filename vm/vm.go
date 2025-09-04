@@ -261,6 +261,7 @@ func (vm *VM) Run() {
 			frame.ip++
 			f := vm.constants[index]
 			closure := object.NewClosure(f.(object.Function))
+			vm.Push(closure)
 			for i := 0; i < closure.Function.UpValueCount; i++ {
 				isLocal := stream[frame.ip+1]
 				frame.ip++
@@ -272,14 +273,14 @@ func (vm *VM) Run() {
 					closure.UpValues = append(closure.UpValues, frame.closure.UpValues[index])
 				}
 			}
-			vm.Push(closure)
+			vm.stack[len(vm.stack)-1] = closure
 
 		case op.OpCall:
 			argCount := int(stream[frame.ip+1])
 			frame.ip++
 
 			// callee := vm.stack[frame.bp+len(vm.stack)-1-argCount]
-			callee := vm.Pop()
+			callee := vm.stack[len(vm.stack)-1-argCount]
 			fn, ok := callee.(object.Closure)
 			if !ok {
 				log.Fatal("Can only call functions. Got: ", callee.Type())
@@ -291,7 +292,7 @@ func (vm *VM) Run() {
 
 			newFrame := CallFrame{
 				closure: fn,
-				bp:      len(vm.stack) - argCount,
+				bp:      len(vm.stack) - 1 - argCount,
 				// slots:    vm.stack[frame.bp+len(frame.slots)-argCount:], // pass the arguments and the space for local variables
 				ip: 0,
 			}

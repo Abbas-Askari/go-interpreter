@@ -68,12 +68,15 @@ func (c *Compiler) EnterTarget() {
 	t := NewTarget(c.target)
 	// c.Declare("this")
 	c.target = t
+	if c.target != nil {
+		c.Declare("this")
+	}
 }
 
 func (c *Compiler) ExitTarget(arity int) int {
 	f := c.target.function
 	f.Arity = arity
-	fmt.Println("Exited Scope: ", c.target.scope)
+	fmt.Println("Exited Scope: ", c.target.scope.Store)
 	upvalues := c.target.upValues
 	f.UpValueCount = len(upvalues)
 	c.target = c.target.outer
