@@ -45,6 +45,7 @@ const (
 
 	TRUE  TokenType = "TRUE"
 	FALSE TokenType = "FALSE"
+	NIL   TokenType = "NIL"
 
 	NUMBER     TokenType = "NUMBER"
 	STRING     TokenType = "STRING"

@@ -39,6 +39,8 @@ func (p *Parser) Declaration() Declaration {
 		var exp Expression = &LiteralExpression{}
 		if p.consumeIfExists(token.ASSIGN) {
 			exp = p.Expression()
+		} else if p.currentToken.Type == token.SEMICOLON {
+			exp = &LiteralExpression{token: token.Token{Type: token.NIL}}
 		}
 		statement = &VariableDeclaration{
 			name: name, expression: exp,

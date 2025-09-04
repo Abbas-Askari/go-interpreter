@@ -128,6 +128,8 @@ func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
 		index = c.AddConstant(object.String{
 			Value: l.token.Literal,
 		})
+	} else if l.token.Type == token.NIL {
+		index = c.AddConstant(object.Nil{})
 	} else {
 		panic("This shouldn't have happened! Lexer is probably broken")
 	}
