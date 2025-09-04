@@ -33,6 +33,9 @@ func (p *Parser) Declaration() Declaration {
 	if p.consumeIfExists(token.LET) {
 		name := p.currentToken
 		p.move()
+		if name.Type != token.IDENTIFIER {
+			panic("Expected variable name")
+		}
 		var exp Expression = &LiteralExpression{}
 		if p.consumeIfExists(token.ASSIGN) {
 			exp = p.Expression()
