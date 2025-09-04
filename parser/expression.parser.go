@@ -146,7 +146,7 @@ func (p *Parser) LiteralExpression() Expression {
 		return exp
 	}
 
-	if p.match(token.NUMBER, token.STRING, token.TRUE, token.FALSE) {
+	if p.match(token.NUMBER, token.STRING, token.TRUE, token.FALSE, token.NIL) {
 		exp := &LiteralExpression{
 			token: p.currentToken,
 		}
