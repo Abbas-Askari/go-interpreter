@@ -25,7 +25,16 @@ spend(2);
 
 let greet = a.greet;
 greet();
+greet();
+greet();
 
 spend(2);
 spend(2);
+spend(2);
+spend(2);
+spend(2);
 
+greet();
+greet();
+greet();
+greet();

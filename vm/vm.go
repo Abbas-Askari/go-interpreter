@@ -5,6 +5,7 @@ import (
 	"Abbas-Askari/interpreter-v2/op"
 	"fmt"
 	"log"
+	"slices"
 )
 
 type CallFrame struct {
@@ -66,6 +67,7 @@ func (vm *VM) Push(o object.Object) {
 
 func (vm *VM) CloseUpValues(last int) {
 	closedIndexes := []int{}
+	// fmt.Println("Closing upvalues...")
 	for i := len(vm.stack) - 1; i >= 0; i-- {
 		if i < last {
 			break
@@ -78,9 +80,11 @@ func (vm *VM) CloseUpValues(last int) {
 			// and point the upvalue to the closed field
 			upvalue.Closed = *upvalue.Value
 			upvalue.Value = &upvalue.Closed
+			// fmt.Println("Closed upvalue:", upvalue)
 			closedIndexes = append(closedIndexes, i)
 		}
 	}
+	// fmt.Println("Done closing upvalues.")
 
 	// Remove closed upvalues from the openUpValues list
 	newOpenUpValues := []*object.UpValue{}
@@ -100,6 +104,12 @@ func (vm *VM) CloseUpValues(last int) {
 }
 
 func (vm *VM) CaptureUpValues(o *object.Object) *object.UpValue {
+	index := slices.IndexFunc(vm.openUpValues, func(u *object.UpValue) bool {
+		return u.Value == o
+	})
+	if index != -1 {
+		return vm.openUpValues[index]
+	}
 	upvalue := &object.UpValue{
 		Value:  o,
 		Closed: nil,
