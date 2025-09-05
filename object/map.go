@@ -33,3 +33,7 @@ func (b Map) Div(o Object) Object {
 func (b Map) GetTruthy() Boolean {
 	return Boolean{true}
 }
+
+func (b Map) GetPrototype() *Map {
+	return nil
+}

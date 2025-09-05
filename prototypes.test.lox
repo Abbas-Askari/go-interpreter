@@ -1,0 +1,11 @@
+let s = "this is my string";
+
+print s.length; // 17
+
+s = "short";
+
+print s.length; // 5
+
+s = s + " and now it's longer";
+print s.length; // 26
+print s;

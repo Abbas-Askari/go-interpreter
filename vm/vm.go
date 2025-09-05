@@ -229,15 +229,22 @@ func (vm *VM) Run() {
 			if !ok {
 				log.Fatal("Property name must be a string. Got: ", property.Type())
 			}
-			Map, ok := obj.(object.Map)
+			Map, ok := obj.(*object.Map)
 			if !ok {
-				log.Fatal("Only maps have properties. Got: ", obj.Type())
+				Map = obj.GetPrototype()
 			}
-			value, ok := Map.Map[str.Value]
-			if !ok {
+
+			for Map != nil {
+				value, ok := Map.Map[str.Value]
+				if ok {
+					vm.Push(value)
+					break
+				}
+				Map = Map.GetPrototype()
+			}
+			if Map == nil {
+				// log.Fatalf("Property %s not found on object of type %s\n", str.Value, obj.Type())
 				vm.Push(object.Nil{})
-			} else {
-				vm.Push(value)
 			}
 
 		case op.OpJump:

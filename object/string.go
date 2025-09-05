@@ -33,3 +33,11 @@ func (b String) Div(o Object) Object {
 func (b String) GetTruthy() Boolean {
 	return Boolean{len(b.Value) != 0}
 }
+
+func (b String) GetPrototype() *Map {
+	return &Map{
+		Map: map[string]Object{
+			"length": Number{Value: float64(len(b.Value))},
+		},
+	}
+}

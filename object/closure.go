@@ -39,3 +39,7 @@ func (b Closure) Div(o Object) Object {
 func (b Closure) GetTruthy() Boolean {
 	return Boolean{true}
 }
+
+func (b Closure) GetPrototype() *Map {
+	return nil
+}

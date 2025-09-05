@@ -34,3 +34,7 @@ func (b Boolean) String() string {
 func (b Boolean) Type() ObjectType {
 	return BOOLEAN
 }
+
+func (b Boolean) GetPrototype() *Map {
+	return nil
+}

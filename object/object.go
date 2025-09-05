@@ -23,6 +23,7 @@ type Object interface {
 	GetTruthy() Boolean
 	String() string
 	Type() ObjectType
+	GetPrototype() *Map
 }
 
 type Number struct {
@@ -79,6 +80,10 @@ func (n Number) GetTruthy() Boolean {
 	return Boolean{Value: n.Value != 0}
 }
 
+func (n Number) GetPrototype() *Map {
+	return nil
+}
+
 type Nil struct{}
 
 func (n Nil) Type() ObjectType {
@@ -107,4 +112,8 @@ func (n Nil) String() string {
 
 func (n Nil) GetTruthy() Boolean {
 	return Boolean{Value: false}
+}
+
+func (n Nil) GetPrototype() *Map {
+	return nil
 }
