@@ -14,27 +14,28 @@ func Person(name, money) {
 
     t.spend = spend;
     t.greet = greet;
+    t.self = t;
     return t;
 }
 
 let a = Person("Peter", 10);
 
-let spend = a.spend;
-spend(2);
-spend(2);
+let spend = a.self.spend;
+a.self.spend(2);
+a.self.spend(2);
 
-let greet = a.greet;
-greet();
-greet();
-greet();
+let greet = a.self.greet;
+a.self.greet();
+a.self.greet();
+a.self.greet();
 
-spend(2);
-spend(2);
-spend(2);
-spend(2);
-spend(2);
+a.self.spend(2);
+a.self.spend(2);
+a.self.spend(2);
+a.self.spend(2);
+a.self.spend(2);
 
-greet();
-greet();
-greet();
-greet();
+a.self.greet();
+a.self.greet();
+a.self.greet();
+a.self.greet();

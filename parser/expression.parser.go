@@ -132,32 +132,34 @@ func (p *Parser) LiteralExpression() Expression {
 			token: p.currentToken,
 		}
 		p.move()
-		for p.consumeIfExists(token.LPAREN) {
-			// Function Call
-			args := []Expression{}
-			if !p.consumeIfExists(token.RPAREN) {
-				for {
-					args = append(args, p.Expression())
-					if p.consumeIfExists(token.RPAREN) {
-						break
+		for p.currentToken.Type == token.LPAREN || p.currentToken.Type == token.DOT {
+			if p.consumeIfExists(token.LPAREN) {
+				// Function Call
+				args := []Expression{}
+				if !p.consumeIfExists(token.RPAREN) {
+					for {
+						args = append(args, p.Expression())
+						if p.consumeIfExists(token.RPAREN) {
+							break
+						}
+						p.consume(token.COMMA, "Expected ',' between function call arguments")
 					}
-					p.consume(token.COMMA, "Expected ',' between function call arguments")
+				}
+				exp = &CallExpression{
+					callee:    exp,
+					arguments: args,
 				}
 			}
-			exp = &CallExpression{
-				callee:    exp,
-				arguments: args,
-			}
-		}
-		if p.consumeIfExists(token.DOT) {
-			if p.currentToken.Type != token.IDENTIFIER {
-				panic("Expected property name after '.'")
-			}
-			property := p.currentToken
-			p.move()
-			exp = &PropertyExpression{
-				object:   exp,
-				property: property.Literal,
+			if p.consumeIfExists(token.DOT) {
+				if p.currentToken.Type != token.IDENTIFIER {
+					panic("Expected property name after '.'")
+				}
+				property := p.currentToken
+				p.move()
+				exp = &PropertyExpression{
+					object:   exp,
+					property: property.Literal,
+				}
 			}
 		}
 
