@@ -32,6 +32,10 @@ func main() {
 	fmt.Println("---------------------------")
 
 	compiler := compiler.NewCompiler()
+	nativeFunctions := object.GetNativeFunctions()
+	for _, fun := range nativeFunctions {
+		compiler.DefineConstant(fun.Name, fun)
+	}
 
 	function, constants := compiler.Compile(statements)
 	fmt.Println(function, constants)
@@ -45,7 +49,7 @@ func main() {
 		}
 	}
 
-	vm := vm.NewVM(function, constants)
+	vm := vm.NewVM(function, constants, nativeFunctions)
 	fmt.Println("----------Output----------")
 	vm.Run()
 	fmt.Println("--------------------------")

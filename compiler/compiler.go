@@ -109,6 +109,11 @@ func (c *Compiler) AddConstant(o object.Object) int {
 	return len(c.constants) - 1
 }
 
+func (c *Compiler) DefineConstant(name string, o object.Object) {
+	c.AddConstant(o)
+	c.globals = append(c.globals, name)
+}
+
 func (c *Compiler) Declare(name string) {
 	scope := LocalScope
 	if c.target.scopeDepth == 0 && c.target.targetType == SCRIPT_TARGET {

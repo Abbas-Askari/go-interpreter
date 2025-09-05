@@ -30,9 +30,10 @@ type VM struct {
 	stack        []object.Object
 	ip           int
 	openUpValues []*object.UpValue
+	nativeFuncs  []object.NativeFunction
 }
 
-func NewVM(function object.Function, constants []object.Object) *VM {
+func NewVM(function object.Function, constants []object.Object, nativeFunctions []object.NativeFunction) *VM {
 	stack := make([]object.Object, 0, STACK_SIZE)
 
 	frames := []CallFrame{
@@ -44,9 +45,10 @@ func NewVM(function object.Function, constants []object.Object) *VM {
 	}
 
 	return &VM{
-		frames:    frames,
-		constants: constants,
-		stack:     stack,
+		frames:      frames,
+		constants:   constants,
+		stack:       stack,
+		nativeFuncs: nativeFunctions,
 	}
 }
 
@@ -121,6 +123,10 @@ func (vm *VM) CaptureUpValues(o *object.Object) *object.UpValue {
 func (vm *VM) Run() {
 
 	globals := []object.Object{}
+
+	for _, fn := range vm.nativeFuncs {
+		globals = append(globals, fn)
+	}
 
 	frame := &vm.frames[0]
 	debug := false
@@ -336,7 +342,24 @@ func (vm *VM) Run() {
 			callee := vm.stack[len(vm.stack)-1-argCount]
 			fn, ok := callee.(object.Closure)
 			if !ok {
+				nfn, ok := callee.(object.NativeFunction)
+				if ok {
+					if argCount != nfn.Arity {
+						log.Fatalf("Wrong number of arguments for native function. Expected %d, got %d\n", nfn.Arity, argCount)
+					}
+					// Call the native function
+					args := vm.stack[len(vm.stack)-argCount:]
+					result := nfn.Function(args...)
+					// Pop the arguments and the native function from the stack
+					vm.stack = vm.stack[:len(vm.stack)-argCount-1]
+					// Push the result onto the stack
+					vm.Push(result)
+					// Continue to the next instruction
+					frame.ip++
+					continue
+				}
 				log.Fatal("Can only call functions. Got: ", callee.Type())
+
 			}
 
 			if argCount != fn.Function.Arity {
