@@ -43,6 +43,8 @@ const (
 	OpGetUpValue
 	OpSetUpValue
 	OpCloseUpValue
+	OpGetProperty
+	OpSetProperty
 )
 
 func (o OpCode) String() string {
@@ -87,6 +89,8 @@ func (o OpCode) String() string {
 		OpGetUpValue:    "GetUpValue",
 		OpSetUpValue:    "SetUpValue",
 		OpCloseUpValue:  "CloseUpValue",
+		OpGetProperty:   "GetProperty",
+		OpSetProperty:   "SetProperty",
 	}
 	str, ok := opNames[o]
 	if !ok {

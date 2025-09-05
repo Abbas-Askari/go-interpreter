@@ -194,6 +194,42 @@ func (vm *VM) Run() {
 			frame.ip++
 			vm.Push(*frame.closure.UpValues[index].Value)
 
+		case op.OpSetProperty:
+			index := int(stream[frame.ip+1])
+			frame.ip++
+			property := vm.constants[index]
+			obj := vm.Pop()
+			value := vm.Peek()
+			str, ok := property.(object.String)
+			if !ok {
+				log.Fatal("Property name must be a string. Got: ", property.Type())
+			}
+			Map, ok := obj.(object.Map)
+			if !ok {
+				log.Fatal("Only maps have properties. Got: ", obj.Type())
+			}
+			Map.Map[str.Value] = value
+
+		case op.OpGetProperty:
+			index := int(stream[frame.ip+1])
+			frame.ip++
+			property := vm.constants[index]
+			obj := vm.Pop()
+			str, ok := property.(object.String)
+			if !ok {
+				log.Fatal("Property name must be a string. Got: ", property.Type())
+			}
+			Map, ok := obj.(object.Map)
+			if !ok {
+				log.Fatal("Only maps have properties. Got: ", obj.Type())
+			}
+			value, ok := Map.Map[str.Value]
+			if !ok {
+				vm.Push(object.Nil{})
+			} else {
+				vm.Push(value)
+			}
+
 		case op.OpJump:
 			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop
 			frame.ip++
@@ -318,6 +354,7 @@ func (vm *VM) Run() {
 			vm.Pop()
 
 		default:
+			fmt.Println("Stack: ", vm.stack)
 			log.Fatal("Unknown OpCode: ", opcode)
 
 		}

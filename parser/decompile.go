@@ -22,6 +22,8 @@ func Decompile(function object.Function, constants []object.Object) {
 		op.OpJumpIfTrue:  1,
 		op.OpJump:        1,
 		op.OpCall:        1,
+		op.OpSetProperty: 1,
+		op.OpGetProperty: 1,
 	}
 	for i < len(function.Stream) {
 		current := function.Stream[i]

@@ -12,6 +12,7 @@ const (
 	FUNCTION = "FUNCTION"
 	CLOSURE  = "CLOSURE"
 	UPVALUE  = "UPVALUE"
+	MAP      = "MAP"
 )
 
 type Object interface {

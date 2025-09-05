@@ -26,6 +26,8 @@ const (
 
 	COMMA     TokenType = ","
 	SEMICOLON TokenType = ";"
+	COLON     TokenType = ":"
+	DOT       TokenType = "."
 
 	EQUAL_EQUAL   TokenType = "=="
 	NOT_EQUAL     TokenType = "!="

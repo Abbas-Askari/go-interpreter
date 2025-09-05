@@ -19,6 +19,8 @@ const (
 	ASSIGNMENT_EXPRESSION = "ASSIGNMENT_EXPRESSION"
 	UNARY_EXPRESSION      = "UNARY_EXPRESSION"
 	CALL_EXPRESSION       = "CALL_EXPRESSION"
+	MAP_EXPRESSION        = "MAP_EXPRESSION"
+	PROPERTY_EXPRESSION   = "PROPERTY_EXPRESSION"
 )
 
 type Expression interface {
@@ -137,6 +139,37 @@ func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
 	c.Emit(op.OpCode(index))
 }
 
+type MapExpression struct {
+	pairs map[Expression]Expression
+}
+
+func (l *MapExpression) GetType() ExpressionType {
+	return LITERAL_EXPRESSION
+}
+
+func (l *MapExpression) String() string {
+	return fmt.Sprintf("%v(%v)", colors.Colorize(MAP_EXPRESSION, colors.BLUE), l.pairs)
+}
+
+func (l *MapExpression) Emit(c interfaces.ICompiler) {
+	c.Emit(op.OpConstant)
+	index := c.AddConstant(object.Map{
+		Map: map[string]object.Object{},
+	})
+	c.Emit(op.OpCode(index))
+
+	// for key, value := range l.pairs {
+	// 	// Load the map
+	// 	c.Emit(op.OpDup)
+
+	// 	// Load the key
+	// 	key.Emit(c)
+
+	// 	// Load the value
+	// 	value.Emit(c)
+	// }
+}
+
 type IdentifierExpression struct {
 	token token.Token
 }
@@ -149,12 +182,12 @@ func (l *IdentifierExpression) String() string {
 	return fmt.Sprintf("%v(%v)", colors.Colorize(IDENTIFIER_EXPRESSION, colors.BLUE), l.token)
 }
 
-func (l *IdentifierExpression) Emit(c interfaces.ICompiler) {
+func (l IdentifierExpression) Emit(c interfaces.ICompiler) {
 	c.GetIdentifier(l.token)
 }
 
 type AssignmentExpression struct {
-	assignee   IdentifierExpression
+	assignee   Expression
 	assignment Expression
 }
 
@@ -168,7 +201,16 @@ func (l *AssignmentExpression) String() string {
 
 func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
 	l.assignment.Emit(c)
-	c.SetGlobal(l.assignee.token)
+	if ident, ok := l.assignee.(IdentifierExpression); ok {
+		c.SetGlobal(ident.token)
+	} else if prop, ok := l.assignee.(PropertyExpression); ok {
+		prop.object.Emit(c)
+		c.Emit(op.OpSetProperty)
+		index := c.AddConstant(object.String{Value: prop.property})
+		c.Emit(op.OpCode(index))
+	} else {
+		panic(fmt.Errorf("Invalid assignment target: %v", l.assignee))
+	}
 }
 
 type CallExpression struct {
@@ -191,4 +233,20 @@ func (l *CallExpression) Emit(c interfaces.ICompiler) {
 	}
 	c.Emit(op.OpCall)
 	c.Emit(op.OpCode(len(l.arguments)))
+}
+
+type PropertyExpression struct {
+	object   Expression
+	property string
+}
+
+func (l PropertyExpression) String() string {
+	return fmt.Sprintf("%v(%v = %v)", colors.Colorize(PROPERTY_EXPRESSION, colors.BLUE), l.object, l.property)
+}
+
+func (l PropertyExpression) Emit(c interfaces.ICompiler) {
+	l.object.Emit(c)
+	c.Emit(op.OpGetProperty)
+	index := c.AddConstant(object.String{Value: l.property})
+	c.Emit(op.OpCode(index))
 }

@@ -1,0 +1,31 @@
+func Person(name, money) {
+    let t = {};
+    name = name;
+    money = money;
+
+    func spend(x) {
+        money = money - x;
+        print name + " has $" + money;
+    }
+
+    func greet() {
+        print name + " has $" + money;
+    }
+
+    t.spend = spend;
+    t.greet = greet;
+    return t;
+}
+
+let a = Person("Peter", 10);
+
+let spend = a.spend;
+spend(2);
+spend(2);
+
+let greet = a.greet;
+greet();
+
+spend(2);
+spend(2);
+

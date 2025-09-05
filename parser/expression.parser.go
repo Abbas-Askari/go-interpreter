@@ -14,6 +14,13 @@ func (p *Parser) Expression() Expression {
 			assignment: p.Expression(),
 		}
 	}
+
+	if assignee, ok := exp.(*PropertyExpression); ok && p.consumeIfExists(token.ASSIGN) {
+		exp = &AssignmentExpression{
+			assignee:   *assignee,
+			assignment: p.Expression(),
+		}
+	}
 	return exp
 }
 
@@ -142,6 +149,17 @@ func (p *Parser) LiteralExpression() Expression {
 				arguments: args,
 			}
 		}
+		if p.consumeIfExists(token.DOT) {
+			if p.currentToken.Type != token.IDENTIFIER {
+				panic("Expected property name after '.'")
+			}
+			property := p.currentToken
+			p.move()
+			exp = &PropertyExpression{
+				object:   exp,
+				property: property.Literal,
+			}
+		}
 
 		return exp
 	}
@@ -151,6 +169,31 @@ func (p *Parser) LiteralExpression() Expression {
 			token: p.currentToken,
 		}
 		p.move()
+		return exp
+	}
+
+	if p.consumeIfExists(token.LBRACE) {
+		exp := &MapExpression{
+			pairs: map[Expression]Expression{},
+		}
+		if !p.consumeIfExists(token.RBRACE) {
+			for {
+				key := p.Expression()
+				if _, ok := key.(*IdentifierExpression); !ok {
+					if _, ok := key.(*LiteralExpression); !ok {
+						panic("Only identifiers and literals can be map keys")
+					}
+				}
+				p.consume(token.COLON, "Expected ':' between key and value in map")
+				value := p.Expression()
+				exp.pairs[key] = value
+				if p.consumeIfExists(token.RBRACE) {
+					break
+				} else {
+					p.consume(token.COMMA, "Expected ',' between map pairs")
+				}
+			}
+		}
 		return exp
 	}
 
