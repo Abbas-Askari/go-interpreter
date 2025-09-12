@@ -235,14 +235,24 @@ func (vm *VM) Run() {
 			if !ok {
 				log.Fatal("Property name must be a string. Got: ", property.Type())
 			}
-			Map, ok := obj.(*object.Map)
+			var Map *object.Map
+			m, ok := obj.(object.Map)
 			if !ok {
 				Map = obj.GetPrototype()
+			} else {
+				Map = &m
 			}
 
 			for Map != nil {
 				value, ok := Map.Map[str.Value]
 				if ok {
+					if closure, ok := value.(object.Closure); ok {
+						// Set the "this" value of the closure to the object
+						fmt.Println("Setting this of closure to", obj)
+						closure.This = &obj
+						value = closure
+					}
+
 					vm.Push(value)
 					break
 				}
@@ -375,6 +385,12 @@ func (vm *VM) Run() {
 			vm.frames = append(vm.frames, newFrame)
 			frame = &vm.frames[len(vm.frames)-1]
 			stream = frame.closure.Function.Stream
+
+			if fn.This != nil {
+				vm.stack[len(vm.stack)-1-argCount] = *fn.This
+			} else {
+				vm.stack[len(vm.stack)-1-argCount] = object.Nil{}
+			}
 			continue
 
 		case op.OpNil:

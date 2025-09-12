@@ -218,22 +218,23 @@ func (c *Compiler) GetUpValue(name token.Token, target *Target) (int, error) {
 }
 
 func (c *Compiler) GetIdentifier(name token.Token) {
-	// if true {
-	// 	fmt.Println(name, c.globals, c.target.scope, c.target.scopeDepth)
-	// 	fmt.Println(name, c.target.function.Stream)
+	if true {
+		fmt.Println(name, c.globals, c.target.scope, c.target.scopeDepth)
+		fmt.Println(name, c.target.function.Stream)
 
-	// 	defer fmt.Println(c.target.function.Stream)
-	// }
+		defer fmt.Println(c.target.function.Stream)
+	}
 
 	scope := c.target.scope
 
 	// Check local scope first
 	symbol, index, err := c.GetLocal(name, scope)
 	if err == nil {
-		if symbol.Depth != 0 {
+		if symbol.Depth != 0 || symbol.Name == "this" {
 			c.Emit(op.OpLoadLocal)
 		}
 		c.Emit(op.OpCode(index))
+		fmt.Println("Found local", symbol, index)
 		return
 	}
 

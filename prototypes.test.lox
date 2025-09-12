@@ -1,9 +1,46 @@
-let t = clock();
-print t;
-for let i = 0; i < 99999999; i = i + 1 {
-    if i % 10000000 == 0 {
-        print i;
-        print clock() - t;
+func Person() {
+    print "Top This: " + this;
+    
+    func setName(n) {
+        this.name = n;
     }
+
+    func getName() {
+        return this.name;
+    }
+    
+    let t = {};
+    t.setName = setName;
+    t.getName = getName;
+    return t;
 }
-print "took " + (clock() - t) + " s";
+
+let fakeContext = {};
+fakeContext.pointer = 'This is a fake context';
+fakeContext.p = Person;
+
+let p = fakeContext.p();
+
+let set = p.setName;
+let get = p.getName;
+print set;
+print p.setName;
+print get;
+print p.getName;
+
+
+
+set("h");
+
+print p.getName();
+print get();
+
+p.setName("p");
+
+print p.getName();
+print get();
+
+set("h");
+
+print p.getName();
+print get();

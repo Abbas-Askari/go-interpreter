@@ -5,6 +5,7 @@ import "fmt"
 type Closure struct {
 	Function Function
 	UpValues []*UpValue
+	This     *Object
 }
 
 func NewClosure(function Function) Closure {
@@ -13,7 +14,7 @@ func NewClosure(function Function) Closure {
 }
 
 func (b Closure) String() string {
-	return fmt.Sprintf("CLOSURE<upvalues: %v>", b.UpValues)
+	return fmt.Sprintf("CLOSURE<this: %v>", b.This)
 }
 
 func (b Closure) Type() ObjectType {
