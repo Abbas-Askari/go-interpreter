@@ -88,8 +88,16 @@ func (p *Parser) Declaration() Declaration {
 
 func (p *Parser) Statement() Statement {
 	var statement Statement
-
-	if p.consumeIfExists(token.IF) {
+	if p.consumeIfExists(token.IMPORT) {
+		if p.currentToken.Type != token.STRING {
+			panic("Expected a string literal after import")
+		}
+		statement = &ImportDeclaration{
+			Module: p.currentToken,
+		}
+		p.move()
+		p.consume(token.SEMICOLON, "Expected a semicolon")
+	} else if p.consumeIfExists(token.IF) {
 		exp := p.Expression()
 		thenStatement := p.Statement()
 		ifStatement := IfStatement{

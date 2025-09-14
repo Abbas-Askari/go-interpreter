@@ -10,11 +10,7 @@ import (
 	"os"
 )
 
-func main() {
-	filename := "/home/abbas/repos/interpreter-v2/prototypes.test.lox"
-	// if len(os.Args) > 1 {
-	// 	filename = os.Args[1]
-	// }
+func runFile(filename string) *object.Map {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		panic(fmt.Errorf("File not found!\nUsage: run [filepath]"))
@@ -31,11 +27,28 @@ func main() {
 	fmt.Println(statements)
 	fmt.Println("---------------------------")
 
-	compiler := compiler.NewCompiler()
-	nativeFunctions := object.GetNativeFunctions()
-	for _, fun := range nativeFunctions {
-		compiler.DefineConstant(fun.Name, fun)
+	for _, stmt := range statements {
+		if imp, ok := stmt.(*parser.ImportDeclaration); ok {
+			fmt.Println("Importing module:", imp.Module.Literal)
+			modulePath := "./" + imp.Module.Literal + ".lox"
+			if _, err := os.Stat(modulePath); os.IsNotExist(err) {
+				panic(fmt.Sprintf("Module not found: %s", modulePath))
+			}
+			imp.Exports = runFile(modulePath)
+		}
 	}
+
+	compiler := compiler.NewCompiler()
+
+	globals := object.GetNativeFunctions()
+	compiler.DefineConstant("exports", object.Map{})
+	for _, fun := range globals {
+		compiler.DefineConstant(fun.(object.NativeFunction).Name, fun)
+	}
+	// put object.Map{} in globals as "exports" as index 0
+	// so user can do exports["key"] = "value"
+	// and access it from other files by import
+	globals = append([]object.Object{object.Map{Map: map[string]object.Object{}}}, globals...)
 
 	function, constants := compiler.Compile(statements)
 	fmt.Println(function, constants)
@@ -49,10 +62,20 @@ func main() {
 		}
 	}
 
-	vm := vm.NewVM(function, constants, nativeFunctions)
+	vm := vm.NewVM(function, constants, globals)
 	fmt.Println("----------Output----------")
 	vm.Run()
 	fmt.Println("--------------------------")
 
+	m := vm.Globals[0].(object.Map)
+	return &m
+}
+
+func main() {
+	filename := "/home/abbas/repos/interpreter-v2/exports.test.lox"
+	// if len(os.Args) > 1 {
+	// 	filename = os.Args[1]
+	// }
+	runFile(filename)
 	fmt.Println("Done!")
 }

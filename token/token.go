@@ -59,6 +59,7 @@ const (
 	BREAK    TokenType = "BREAK"
 	CONTINUE TokenType = "CONTINUE"
 	ELSE     TokenType = "ELSE"
+	IMPORT   TokenType = "IMPORT"
 )
 
 type Token struct {

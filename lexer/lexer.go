@@ -53,6 +53,7 @@ func Tokenize(input string) []token.Token {
 		"continue": token.CONTINUE,
 		"return":   token.RETURN,
 		"nil":      token.NIL,
+		"import":   token.IMPORT,
 	}
 
 	tokens := []token.Token{}

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"Abbas-Askari/interpreter-v2/interfaces"
+	"Abbas-Askari/interpreter-v2/object"
 	"Abbas-Askari/interpreter-v2/op"
 	"Abbas-Askari/interpreter-v2/token"
 	"fmt"
@@ -13,6 +14,7 @@ const (
 	VariableDeclarationType DeclarationType = iota
 	StatementDeclarationType
 	FunctionDeclarationType
+	ImportDeclarationType
 )
 
 type Declaration interface {
@@ -72,4 +74,24 @@ func (dx FunctionDeclaration) String() string {
 
 func (d *FunctionDeclaration) Type() DeclarationType {
 	return FunctionDeclarationType
+}
+
+type ImportDeclaration struct {
+	Module  token.Token
+	Exports *object.Map
+}
+
+func (d *ImportDeclaration) Emit(c interfaces.ICompiler) {
+	index := c.AddConstant(*d.Exports)
+	c.Emit(op.OpConstant)
+	c.Emit(op.OpCode(index))
+	c.Declare(d.Module.Literal)
+}
+
+func (dx ImportDeclaration) String() string {
+	return fmt.Sprintf("Import: %v\n", dx.Module)
+}
+
+func (d *ImportDeclaration) Type() DeclarationType {
+	return ImportDeclarationType
 }

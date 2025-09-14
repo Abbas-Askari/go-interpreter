@@ -10,8 +10,7 @@ import (
 )
 
 type Compiler struct {
-	constants []object.Object
-	globals   []string
+	globals []string
 
 	target *Target
 }
@@ -80,7 +79,7 @@ func (c *Compiler) ExitTarget(arity int) int {
 	upvalues := c.target.upValues
 	f.UpValueCount = len(upvalues)
 	c.target = c.target.outer
-	c.constants = append(c.constants, f)
+	c.target.function.Constants = append(c.target.function.Constants, f)
 	fmt.Println("Exited: ", f)
 	fmt.Println("Back to ", c.target.function.Stream)
 	for _, upValue := range upvalues {
@@ -93,20 +92,20 @@ func (c *Compiler) ExitTarget(arity int) int {
 		fmt.Println("UpValue: ", upValue)
 		fmt.Println("Stream so far: ", f.Stream)
 	}
-	return len(c.constants) - 1
+	return len(c.target.function.Constants) - 1
 }
 
 func NewCompiler() *Compiler {
-	return &Compiler{
-		constants: []object.Object{},
-		globals:   []string{},
-		target:    NewTarget(nil),
+	c := &Compiler{
+		globals: []string{},
+		target:  NewTarget(nil),
 	}
+	return c
 }
 
 func (c *Compiler) AddConstant(o object.Object) int {
-	c.constants = append(c.constants, o)
-	return len(c.constants) - 1
+	c.target.function.Constants = append(c.target.function.Constants, o)
+	return len(c.target.function.Constants) - 1
 }
 
 func (c *Compiler) DefineConstant(name string, o object.Object) {
@@ -295,7 +294,7 @@ func (c *Compiler) Compile(statements []parser.Declaration) (object.Function, []
 		statement.Emit(c)
 	}
 
-	return c.target.function, c.constants
+	return c.target.function, c.target.function.Constants
 }
 
 func (c *Compiler) SetOpCode(i int, op op.OpCode) {

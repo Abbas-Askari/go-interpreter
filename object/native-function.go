@@ -43,9 +43,9 @@ func (b NativeFunction) GetPrototype() *Map {
 	return nil
 }
 
-func GetNativeFunctions() []NativeFunction {
-	return []NativeFunction{
-		{
+func GetNativeFunctions() []Object {
+	return []Object{
+		NativeFunction{
 			Function: func(args ...Object) Object {
 				// Return current time in seconds
 				x := Number{Value: float64(time.Now().Unix())}

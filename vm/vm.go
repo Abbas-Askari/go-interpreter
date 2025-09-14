@@ -30,10 +30,10 @@ type VM struct {
 	stack        []object.Object
 	ip           int
 	openUpValues []*object.UpValue
-	nativeFuncs  []object.NativeFunction
+	Globals      []object.Object
 }
 
-func NewVM(function object.Function, constants []object.Object, nativeFunctions []object.NativeFunction) *VM {
+func NewVM(function object.Function, constants []object.Object, globals []object.Object) *VM {
 	stack := make([]object.Object, 0, STACK_SIZE)
 
 	frames := []CallFrame{
@@ -45,10 +45,10 @@ func NewVM(function object.Function, constants []object.Object, nativeFunctions 
 	}
 
 	return &VM{
-		frames:      frames,
-		constants:   constants,
-		stack:       stack,
-		nativeFuncs: nativeFunctions,
+		frames:    frames,
+		constants: constants,
+		stack:     stack,
+		Globals:   globals,
 	}
 }
 
@@ -124,8 +124,8 @@ func (vm *VM) Run() {
 
 	globals := []object.Object{}
 
-	for _, fn := range vm.nativeFuncs {
-		globals = append(globals, fn)
+	for _, o := range vm.Globals {
+		globals = append(globals, o)
 	}
 
 	frame := &vm.frames[0]
@@ -146,7 +146,7 @@ func (vm *VM) Run() {
 		case op.OpConstant:
 			index := stream[frame.ip+1]
 			frame.ip++
-			constant := vm.constants[index]
+			constant := frame.closure.Function.Constants[index]
 			vm.Push(constant)
 
 		case op.OpAdd:
@@ -248,7 +248,6 @@ func (vm *VM) Run() {
 				if ok {
 					if closure, ok := value.(object.Closure); ok {
 						// Set the "this" value of the closure to the object
-						fmt.Println("Setting this of closure to", obj)
 						closure.This = &obj
 						value = closure
 					}
@@ -421,4 +420,5 @@ func (vm *VM) Run() {
 		fmt.Println("Ending value of stack: ", vm.stack)
 	}
 
+	vm.Globals[0] = globals[0]
 }

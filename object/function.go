@@ -9,6 +9,7 @@ type Function struct {
 	Value        string
 	Stream       []op.OpCode
 	Arity        int
+	Constants    []Object
 	UpValueCount int
 }
 

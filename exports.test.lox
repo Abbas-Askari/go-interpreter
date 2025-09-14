@@ -1,0 +1,4 @@
+import "math";
+
+print math.abs(-32);
+print math.abs(32);
