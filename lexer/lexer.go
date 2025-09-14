@@ -38,6 +38,8 @@ func Tokenize(input string) []token.Token {
 		{":", token.COLON},
 		{"!", token.NOT},
 		{".", token.DOT},
+		{"[", token.LBRACKET},
+		{"]", token.RBRACKET},
 	}
 
 	keywords := map[string]token.TokenType{

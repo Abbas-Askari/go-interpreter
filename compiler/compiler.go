@@ -63,7 +63,6 @@ func NewTarget(outer *Target) *Target {
 }
 
 func (c *Compiler) EnterTarget() {
-	fmt.Println("Enter from ", c.target.function.Stream)
 	t := NewTarget(c.target)
 	// c.Declare("this")
 	c.target = t
@@ -75,13 +74,10 @@ func (c *Compiler) EnterTarget() {
 func (c *Compiler) ExitTarget(arity int) int {
 	f := c.target.function
 	f.Arity = arity
-	fmt.Println("Exited Scope: ", c.target.scope.Store)
 	upvalues := c.target.upValues
 	f.UpValueCount = len(upvalues)
 	c.target = c.target.outer
 	c.target.function.Constants = append(c.target.function.Constants, f)
-	fmt.Println("Exited: ", f)
-	fmt.Println("Back to ", c.target.function.Stream)
 	for _, upValue := range upvalues {
 		local := 0
 		if upValue.IsLocal {
@@ -89,8 +85,6 @@ func (c *Compiler) ExitTarget(arity int) int {
 		}
 		c.Emit(op.OpCode(local))
 		c.Emit(op.OpCode(upValue.Index))
-		fmt.Println("UpValue: ", upValue)
-		fmt.Println("Stream so far: ", f.Stream)
 	}
 	return len(c.target.function.Constants) - 1
 }

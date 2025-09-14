@@ -1,0 +1,5 @@
+func NewServer() {
+    print "this: " + this;
+}
+
+print NewServer();

@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-func runFile(filename string) *object.Map {
+func runFile(filename string, debug bool) *object.Map {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		panic(fmt.Errorf("File not found!\nUsage: run [filepath]"))
@@ -23,9 +23,11 @@ func runFile(filename string) *object.Map {
 
 	p := parser.NewParser(tokens)
 	statements := p.Parse()
-	fmt.Println("------------AST------------")
-	fmt.Println(statements)
-	fmt.Println("---------------------------")
+	if debug {
+		fmt.Println("------------AST------------")
+		fmt.Println(statements)
+		fmt.Println("---------------------------")
+	}
 
 	for _, stmt := range statements {
 		if imp, ok := stmt.(*parser.ImportDeclaration); ok {
@@ -34,7 +36,7 @@ func runFile(filename string) *object.Map {
 			if _, err := os.Stat(modulePath); os.IsNotExist(err) {
 				panic(fmt.Sprintf("Module not found: %s", modulePath))
 			}
-			imp.Exports = runFile(modulePath)
+			imp.Exports = runFile(modulePath, debug)
 		}
 	}
 
@@ -42,31 +44,40 @@ func runFile(filename string) *object.Map {
 
 	globals := object.GetNativeFunctions()
 	compiler.DefineConstant("exports", object.Map{})
+	compiler.DefineConstant("Array", object.Map{})
 	for _, fun := range globals {
 		compiler.DefineConstant(fun.(object.NativeFunction).Name, fun)
 	}
 	// put object.Map{} in globals as "exports" as index 0
 	// so user can do exports["key"] = "value"
 	// and access it from other files by import
+	globals = append([]object.Object{*object.PrototypeArray}, globals...)
 	globals = append([]object.Object{object.Map{Map: map[string]object.Object{}}}, globals...)
 
 	function, constants := compiler.Compile(statements)
 	fmt.Println(function, constants)
 
-	parser.Decompile(function, constants)
+	if debug {
+		parser.Decompile(function, constants)
+	}
 
-	for i, c := range constants {
-		if fn, ok := c.(object.Function); ok {
-			fmt.Println("Function at constant index:", i)
-			parser.Decompile(fn, constants)
+	if debug {
+		for i, c := range constants {
+			if fn, ok := c.(object.Function); ok {
+				fmt.Println("Function at constant index:", i)
+				parser.Decompile(fn, constants)
+			}
 		}
 	}
 
 	vm := vm.NewVM(function, constants, globals)
-	fmt.Println("----------Output----------")
+	if debug {
+		fmt.Println("----------Output----------")
+	}
 	vm.Run()
-	fmt.Println("--------------------------")
-
+	if debug {
+		fmt.Println("--------------------------")
+	}
 	m := vm.Globals[0].(object.Map)
 	return &m
 }
@@ -76,6 +87,6 @@ func main() {
 	// if len(os.Args) > 1 {
 	// 	filename = os.Args[1]
 	// }
-	runFile(filename)
+	runFile(filename, false)
 	fmt.Println("Done!")
 }

@@ -23,6 +23,7 @@ func (p *Parser) Parse() []Declaration {
 	statements := []Declaration{}
 	for p.index < len(p.tokens) {
 		statements = append(statements, p.Declaration())
+		fmt.Println("Current token after declaration:", p.currentToken)
 	}
 	return statements
 }

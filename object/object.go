@@ -13,6 +13,7 @@ const (
 	CLOSURE  = "CLOSURE"
 	UPVALUE  = "UPVALUE"
 	MAP      = "MAP"
+	ARRAY    = "ARRAY"
 )
 
 type Object interface {
@@ -24,6 +25,10 @@ type Object interface {
 	String() string
 	Type() ObjectType
 	GetPrototype() *Map
+}
+type Indexable interface {
+	GetElementAtIndex(int) Object
+	SetElementAtIndex(int, Object)
 }
 
 type Number struct {

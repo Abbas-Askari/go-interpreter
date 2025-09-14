@@ -1,4 +1,32 @@
+import "net";
 import "math";
 
-print math.abs(-32);
-print math.abs(32);
+func push(x) {
+    return this + [x];
+}
+
+Array.push = push;
+
+// print math.abs(-32);
+// print math.abs(32);
+// 
+// let str = "This is my sting";
+// 
+// print str.length;
+// print str[2] + str[1];
+// 
+// 
+// let arr = ["this", 1, str, str.length];
+// print "arr: " + arr;
+// print arr.length;
+// 
+// arr[1] = "changed!";
+// print arr;
+// print arr.length;
+// print arr.__proto__;
+
+let arr1 = [1, 2, 3];
+print arr1;
+arr1 = arr1.push(-1);
+print arr1;
+print arr1.__proto__;

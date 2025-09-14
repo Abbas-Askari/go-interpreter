@@ -21,6 +21,13 @@ func (p *Parser) Expression() Expression {
 			assignment: p.Expression(),
 		}
 	}
+
+	if assignee, ok := exp.(*IndexExpression); ok && p.consumeIfExists(token.ASSIGN) {
+		exp = &AssignmentExpression{
+			assignee:   *assignee,
+			assignment: p.Expression(),
+		}
+	}
 	return exp
 }
 
@@ -132,9 +139,9 @@ func (p *Parser) LiteralExpression() Expression {
 			token: p.currentToken,
 		}
 		p.move()
-		for p.currentToken.Type == token.LPAREN || p.currentToken.Type == token.DOT {
+		for p.currentToken.Type == token.LPAREN || p.currentToken.Type == token.DOT || p.currentToken.Type == token.LBRACKET {
+			// Function Call
 			if p.consumeIfExists(token.LPAREN) {
-				// Function Call
 				args := []Expression{}
 				if !p.consumeIfExists(token.RPAREN) {
 					for {
@@ -150,6 +157,7 @@ func (p *Parser) LiteralExpression() Expression {
 					arguments: args,
 				}
 			}
+			// Property Access
 			if p.consumeIfExists(token.DOT) {
 				if p.currentToken.Type != token.IDENTIFIER {
 					panic("Expected property name after '.'")
@@ -159,6 +167,15 @@ func (p *Parser) LiteralExpression() Expression {
 				exp = &PropertyExpression{
 					object:   exp,
 					property: property.Literal,
+				}
+			}
+			// Property Access with Index
+			if p.consumeIfExists(token.LBRACKET) {
+				index := p.Expression()
+				p.consume(token.RBRACKET, "Expected ']' after index")
+				exp = &IndexExpression{
+					object: exp,
+					index:  index,
 				}
 			}
 		}
@@ -194,6 +211,22 @@ func (p *Parser) LiteralExpression() Expression {
 				} else {
 					p.consume(token.COMMA, "Expected ',' between map pairs")
 				}
+			}
+		}
+		return exp
+	}
+
+	if p.consumeIfExists(token.LBRACKET) {
+		exp := &ArrayExpression{
+			elements: []Expression{},
+		}
+		if !p.consumeIfExists(token.RBRACKET) {
+			for {
+				exp.elements = append(exp.elements, p.Expression())
+				if p.consumeIfExists(token.RBRACKET) {
+					break
+				}
+				p.consume(token.COMMA, "Expected ',' between array elements")
 			}
 		}
 		return exp

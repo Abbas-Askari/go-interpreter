@@ -255,12 +255,55 @@ func (vm *VM) Run() {
 					vm.Push(value)
 					break
 				}
-				Map = Map.GetPrototype()
+				Map, ok = Map.Map["__proto__"].(*object.Map)
+				if !ok {
+					Map = nil
+				}
 			}
 			if Map == nil {
 				// log.Fatalf("Property %s not found on object of type %s\n", str.Value, obj.Type())
 				vm.Push(object.Nil{})
 			}
+
+		case op.OpGetIndex:
+			index := vm.Pop()
+			obj := vm.Pop()
+			indexable, ok := obj.(object.Indexable)
+			if !ok {
+				log.Fatalf("Object of type %s is not indexable\n", obj.Type())
+			}
+			numIndex, ok := index.(object.Number)
+			if !ok {
+				log.Fatal("Index must be a number. Got: ", index.Type())
+			}
+			vm.Push(indexable.GetElementAtIndex(int(numIndex.Value)))
+
+		case op.OpSetIndex:
+			index := vm.Pop()
+			obj := vm.Pop()
+			value := vm.Peek()
+			indexable, ok := obj.(object.Indexable)
+			if !ok {
+				log.Fatalf("Object of type %s is not indexable\n", obj.Type())
+			}
+			numIndex, ok := index.(object.Number)
+			if !ok {
+				log.Fatal("Index must be a number. Got: ", index.Type())
+			}
+			indexable.SetElementAtIndex(int(numIndex.Value), value)
+
+		case op.OpArray:
+			length := int(stream[frame.ip+1])
+			frame.ip++
+			elements := vm.stack[len(vm.stack)-length:]
+			// fmt.Println("Elements: ", elements)
+			vm.stack = vm.stack[:len(vm.stack)-length]
+			// fmt.Println("Stack after popping elements: ", vm.stack, elements)
+			detached := make([]object.Object, len(elements))
+			copy(detached, elements)
+			arr := object.Array{Value: detached}
+			vm.Push(arr)
+			// fmt.Println("Stack after popping elements: ", vm.stack, arr, elements)
 
 		case op.OpJump:
 			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop

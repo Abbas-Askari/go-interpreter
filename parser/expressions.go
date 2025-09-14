@@ -21,6 +21,8 @@ const (
 	CALL_EXPRESSION       = "CALL_EXPRESSION"
 	MAP_EXPRESSION        = "MAP_EXPRESSION"
 	PROPERTY_EXPRESSION   = "PROPERTY_EXPRESSION"
+	INDEX_EXPRESSION      = "INDEX_EXPRESSION"
+	ARRAY_EXPRESSION      = "ARRAY_EXPRESSION"
 )
 
 type Expression interface {
@@ -157,17 +159,26 @@ func (l *MapExpression) Emit(c interfaces.ICompiler) {
 		Map: map[string]object.Object{},
 	})
 	c.Emit(op.OpCode(index))
+}
 
-	// for key, value := range l.pairs {
-	// 	// Load the map
-	// 	c.Emit(op.OpDup)
+type ArrayExpression struct {
+	elements []Expression
+}
 
-	// 	// Load the key
-	// 	key.Emit(c)
+func (l *ArrayExpression) GetType() ExpressionType {
+	return ARRAY_EXPRESSION
+}
 
-	// 	// Load the value
-	// 	value.Emit(c)
-	// }
+func (l *ArrayExpression) String() string {
+	return fmt.Sprintf("%v(%v)", colors.Colorize(ARRAY_EXPRESSION, colors.BLUE), l.elements)
+}
+
+func (l *ArrayExpression) Emit(c interfaces.ICompiler) {
+	for _, element := range l.elements {
+		element.Emit(c)
+	}
+	c.Emit(op.OpArray)
+	c.Emit(op.OpCode(len(l.elements)))
 }
 
 type IdentifierExpression struct {
@@ -208,6 +219,10 @@ func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
 		c.Emit(op.OpSetProperty)
 		index := c.AddConstant(object.String{Value: prop.property})
 		c.Emit(op.OpCode(index))
+	} else if exp, ok := l.assignee.(IndexExpression); ok {
+		exp.object.Emit(c)
+		exp.index.Emit(c)
+		c.Emit(op.OpSetIndex)
 	} else {
 		panic(fmt.Errorf("Invalid assignment target: %v", l.assignee))
 	}
@@ -249,4 +264,19 @@ func (l PropertyExpression) Emit(c interfaces.ICompiler) {
 	c.Emit(op.OpGetProperty)
 	index := c.AddConstant(object.String{Value: l.property})
 	c.Emit(op.OpCode(index))
+}
+
+type IndexExpression struct {
+	object Expression
+	index  Expression
+}
+
+func (l IndexExpression) String() string {
+	return fmt.Sprintf("%v(%v = %v)", colors.Colorize(INDEX_EXPRESSION, colors.BLUE), l.object, l.index)
+}
+
+func (l IndexExpression) Emit(c interfaces.ICompiler) {
+	l.object.Emit(c)
+	l.index.Emit(c)
+	c.Emit(op.OpGetIndex)
 }
