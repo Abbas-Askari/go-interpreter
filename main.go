@@ -19,7 +19,9 @@ func runFile(filename string, debug bool) *object.Map {
 
 	tokens := lexer.Tokenize(string(fileContent))
 
-	fmt.Println(tokens)
+	if debug {
+		fmt.Println(tokens)
+	}
 
 	p := parser.NewParser(tokens)
 	statements := p.Parse()
@@ -31,7 +33,9 @@ func runFile(filename string, debug bool) *object.Map {
 
 	for _, stmt := range statements {
 		if imp, ok := stmt.(*parser.ImportDeclaration); ok {
-			fmt.Println("Importing module:", imp.Module.Literal)
+			if debug {
+				fmt.Println("Importing module:", imp.Module.Literal)
+			}
 			modulePath := "./" + imp.Module.Literal + ".lox"
 			if _, err := os.Stat(modulePath); os.IsNotExist(err) {
 				panic(fmt.Sprintf("Module not found: %s", modulePath))
@@ -55,9 +59,11 @@ func runFile(filename string, debug bool) *object.Map {
 	globals = append([]object.Object{object.Map{Map: map[string]object.Object{}}}, globals...)
 
 	function, constants := compiler.Compile(statements)
-	fmt.Println(function, constants)
-
+	if err != nil {
+		panic(err)
+	}
 	if debug {
+		fmt.Println(function, constants)
 		parser.Decompile(function, constants)
 	}
 
@@ -84,9 +90,5 @@ func runFile(filename string, debug bool) *object.Map {
 
 func main() {
 	filename := "/home/abbas/repos/interpreter-v2/exports.test.lox"
-	// if len(os.Args) > 1 {
-	// 	filename = os.Args[1]
-	// }
 	runFile(filename, false)
-	fmt.Println("Done!")
 }

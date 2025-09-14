@@ -2,7 +2,6 @@ package parser
 
 import (
 	"Abbas-Askari/interpreter-v2/token"
-	"fmt"
 )
 
 type Parser struct {
@@ -23,7 +22,6 @@ func (p *Parser) Parse() []Declaration {
 	statements := []Declaration{}
 	for p.index < len(p.tokens) {
 		statements = append(statements, p.Declaration())
-		fmt.Println("Current token after declaration:", p.currentToken)
 	}
 	return statements
 }
@@ -128,7 +126,6 @@ func (p *Parser) Statement() Statement {
 			}
 		}
 		p.consumeIfExists(token.SEMICOLON)
-		fmt.Println(init, cond, adv, p.currentToken)
 		if !p.match(token.LBRACE) {
 			adv = p.Expression()
 		}

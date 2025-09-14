@@ -51,13 +51,11 @@ type BlockStatement struct {
 }
 
 func (b *BlockStatement) Emit(c interfaces.ICompiler) {
-	fmt.Println("Entering Block Statement")
 	c.EnterScope()
 	for _, statement := range b.declarations {
 		statement.Emit(c)
 	}
 	c.ExitScope()
-	fmt.Println("Exited Block Statement")
 }
 
 func (b BlockStatement) String() string {

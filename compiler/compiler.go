@@ -196,7 +196,6 @@ func (c *Compiler) GetUpValue(name token.Token, target *Target) (int, error) {
 	_, index, err := c.GetLocal(name, target.outer.scope)
 	if err == nil {
 		target.outer.scope.Store[index].isCaptured = true
-		fmt.Println("Captured", target.outer.scope.Store[index])
 		i := target.addUpValue(index, true)
 		return i, nil
 	}
@@ -211,7 +210,7 @@ func (c *Compiler) GetUpValue(name token.Token, target *Target) (int, error) {
 }
 
 func (c *Compiler) GetIdentifier(name token.Token) {
-	if true {
+	if false {
 		fmt.Println(name, c.globals, c.target.scope, c.target.scopeDepth)
 		fmt.Println(name, c.target.function.Stream)
 
@@ -227,7 +226,6 @@ func (c *Compiler) GetIdentifier(name token.Token) {
 			c.Emit(op.OpLoadLocal)
 		}
 		c.Emit(op.OpCode(index))
-		fmt.Println("Found local", symbol, index)
 		return
 	}
 
@@ -279,7 +277,6 @@ func (c *Compiler) SetGlobal(name token.Token) {
 }
 
 func (c *Compiler) Emit(op op.OpCode) {
-	// fmt.Println("Emit", op)
 	c.target.function.Stream = append(c.target.function.Stream, op)
 }
 
