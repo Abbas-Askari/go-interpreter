@@ -64,14 +64,14 @@ func runFile(filename string, debug bool) *object.Map {
 	}
 	if debug {
 		fmt.Println(function, constants)
-		parser.Decompile(function, constants)
+		parser.Decompile(function)
 	}
 
 	if debug {
 		for i, c := range constants {
 			if fn, ok := c.(object.Function); ok {
 				fmt.Println("Function at constant index:", i)
-				parser.Decompile(fn, constants)
+				parser.Decompile(fn)
 			}
 		}
 	}

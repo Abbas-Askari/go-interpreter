@@ -14,7 +14,7 @@ type Function struct {
 }
 
 func (b Function) String() string {
-	return fmt.Sprintf("FUNCTION")
+	return fmt.Sprintf("FUNCTIONHEHE")
 }
 
 func (b Function) Type() ObjectType {

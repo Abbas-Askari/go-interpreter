@@ -6,9 +6,11 @@ import (
 	"fmt"
 )
 
-func Decompile(function object.Function, constants []object.Object) {
+func Decompile(function object.Function) {
+	constants := function.Constants
 	fmt.Println("----------DeCompiler----------")
 	fmt.Println("Stream:", function.Stream)
+	fmt.Println("Constants:", constants)
 	i := 0
 	operandCount := map[op.OpCode]int{
 		op.OpConstant:    1,
@@ -24,6 +26,7 @@ func Decompile(function object.Function, constants []object.Object) {
 		op.OpCall:        1,
 		op.OpSetProperty: 1,
 		op.OpGetProperty: 1,
+		op.OpArray:       1,
 	}
 	for i < len(function.Stream) {
 		current := function.Stream[i]

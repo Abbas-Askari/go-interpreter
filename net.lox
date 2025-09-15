@@ -1,5 +1,38 @@
+print "Hello from net";
+
+func NewHandler(path, handlerFunction) {
+    let handler = {};
+    
+    func match(x)  {
+        return x.endsWith(path);      
+    }
+
+    func handle() {
+        handlerFunction();
+    }
+
+    return handler;
+}
+
+print NewHandler;
+
 func NewServer() {
-    print "this: " + this;
+    let server = {};
+    let handlers = [];
+    func post(path, handlerFunction) {
+        NewHandler(path, handlerFunction);
+    }
+    func get(path, handler) {
+        print "";
+    }
+
+    server.listen = listen;
+    server.post = post;
+    server.get = get;
+    return server;
 }
 
 print NewServer();
+
+print "Goodbye from net";
+exports.NewServer = NewServer;

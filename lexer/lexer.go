@@ -60,6 +60,7 @@ func Tokenize(input string) []token.Token {
 
 	tokens := []token.Token{}
 	i := 0
+	line := 1
 	for i != len(input) {
 		if i+1 < len(input) && string(input[i:i+2]) == "//" {
 			for i < len(input) && input[i] != '\n' {
@@ -74,6 +75,7 @@ func Tokenize(input string) []token.Token {
 				tokens = append(tokens, token.Token{
 					Type:    op.typ,
 					Literal: op.literal,
+					Line:    line,
 				})
 				i += len(op.literal)
 				foundOp = true
@@ -107,6 +109,7 @@ func Tokenize(input string) []token.Token {
 			tokens = append(tokens, token.Token{
 				Type:    tokenType,
 				Literal: str,
+				Line:    line,
 			})
 			i += len(str)
 			foundFromKeywords = true
@@ -138,6 +141,7 @@ func Tokenize(input string) []token.Token {
 			tokens = append(tokens, token.Token{
 				Type:    "NUMBER",
 				Literal: number,
+				Line:    line,
 			})
 
 			continue
@@ -162,6 +166,7 @@ func Tokenize(input string) []token.Token {
 			tokens = append(tokens, token.Token{
 				Type:    token.STRING,
 				Literal: str,
+				Line:    line,
 			})
 
 			continue
@@ -182,6 +187,7 @@ func Tokenize(input string) []token.Token {
 			tokens = append(tokens, token.Token{
 				Type:    token.IDENTIFIER,
 				Literal: str,
+				Line:    line,
 			})
 
 			continue
@@ -189,6 +195,9 @@ func Tokenize(input string) []token.Token {
 
 		if c == ' ' || c == '\n' {
 			i++
+			if c == '\n' {
+				line++
+			}
 			continue
 		}
 

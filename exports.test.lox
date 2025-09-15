@@ -1,11 +1,9 @@
+import "Arrays";
+
 import "net";
 import "math";
 
-func push(x) {
-    return this + [x];
-}
 
-Array.push = push;
 
 // print math.abs(-32);
 // print math.abs(32);
@@ -25,8 +23,27 @@ Array.push = push;
 // print arr.length;
 // print arr.__proto__;
 
-let arr1 = [1, 2, 3];
-print arr1;
-arr1 = arr1.push(-1);
-print arr1;
-print arr1.__proto__;
+// let arr1 = [];
+// print arr1;
+// arr1 = arr1.push(-1);
+// print arr1;
+// print arr1.__proto__;
+
+let server = net.NewServer();
+let users = {};
+
+func handleRoot(req, res) {
+    res.json('{"message": "Hello"}');
+}
+
+func addUser(req,res) {
+    let splits = req.path.split('/');
+    let userId = splits[splits.length - 1];
+    users[userId] = users;
+    let str = '' + users;
+    res.json('{"message": "'+  str +'"}');
+}
+
+
+server.get("/", handleRoot);
+print server.listen(3000);

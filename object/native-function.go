@@ -54,5 +54,15 @@ func GetNativeFunctions() []Object {
 			Arity: 0,
 			Name:  "clock",
 		},
+
+		NativeFunction{
+			Function: func(args ...Object) Object {
+				// Return current time in seconds
+				x := Number{Value: float64(time.Now().Unix())}
+				return x
+			},
+			Arity: 1,
+			Name:  "listen",
+		},
 	}
 }

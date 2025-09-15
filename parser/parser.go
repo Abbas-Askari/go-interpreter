@@ -2,6 +2,7 @@ package parser
 
 import (
 	"Abbas-Askari/interpreter-v2/token"
+	"fmt"
 )
 
 type Parser struct {
@@ -205,6 +206,6 @@ func (p *Parser) consume(t token.TokenType, err string) {
 	if p.currentToken.Type == t {
 		p.move()
 	} else {
-		panic(err)
+		panic(fmt.Errorf("[Line %d] %v at '%v'", p.currentToken.Line, err, p.currentToken.Literal))
 	}
 }

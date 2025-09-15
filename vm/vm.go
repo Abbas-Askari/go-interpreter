@@ -213,7 +213,7 @@ func (vm *VM) Run() {
 		case op.OpSetProperty:
 			index := int(stream[frame.ip+1])
 			frame.ip++
-			property := vm.constants[index]
+			property := frame.closure.Function.Constants[index]
 			obj := vm.Pop()
 			value := vm.Peek()
 			str, ok := property.(object.String)
@@ -229,7 +229,7 @@ func (vm *VM) Run() {
 		case op.OpGetProperty:
 			index := int(stream[frame.ip+1])
 			frame.ip++
-			property := vm.constants[index]
+			property := frame.closure.Function.Constants[index]
 			obj := vm.Pop()
 			str, ok := property.(object.String)
 			if !ok {
@@ -370,8 +370,16 @@ func (vm *VM) Run() {
 		case op.OpClosure:
 			index := stream[frame.ip+1]
 			frame.ip++
-			f := vm.constants[index]
-			closure := object.NewClosure(f.(object.Function))
+			f := frame.closure.Function.Constants[index]
+			fn, ok := f.(object.Function)
+			if !ok {
+				if nfn, ok := f.(object.NativeFunction); ok {
+					fmt.Println("Calling native function from closure opcode", nfn.Name)
+				}
+				fmt.Println(vm.stack)
+				log.Fatal("Expected function. Got: ", f.Type())
+			}
+			closure := object.NewClosure(fn)
 			vm.Push(closure)
 			for i := 0; i < closure.Function.UpValueCount; i++ {
 				isLocal := stream[frame.ip+1]
@@ -461,6 +469,7 @@ func (vm *VM) Run() {
 	}
 	if debug {
 		fmt.Println("Ending value of stack: ", vm.stack)
+		fmt.Println("Ending globals: ", globals)
 	}
 
 	vm.Globals[0] = globals[0]
