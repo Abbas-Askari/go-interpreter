@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"sync"
 )
 
 type CallFrame struct {
@@ -28,9 +29,13 @@ type VM struct {
 	frames       []CallFrame
 	constants    []object.Object
 	stack        []object.Object
-	ip           int
 	openUpValues []*object.UpValue
 	Globals      []object.Object
+
+	eventQueue    []object.Closure
+	callbackQueue []QueueElement
+	cond          *sync.Cond
+	mu            sync.Mutex
 }
 
 func NewVM(function object.Function, constants []object.Object, globals []object.Object) *VM {
@@ -39,17 +44,20 @@ func NewVM(function object.Function, constants []object.Object, globals []object
 	frames := []CallFrame{
 		{
 			closure: object.Closure{Function: function},
-			// slots:    stack[:],
-			ip: 0,
 		},
 	}
 
-	return &VM{
+	vm := &VM{
 		frames:    frames,
 		constants: constants,
 		stack:     stack,
 		Globals:   globals,
+
+		callbackQueue: []QueueElement{},
 	}
+
+	vm.cond = sync.NewCond(&vm.mu)
+	return vm
 }
 
 func (vm *VM) Pop() object.Object {
@@ -131,6 +139,8 @@ func (vm *VM) Run() {
 	frame := &vm.frames[0]
 	debug := false
 	stream := frame.closure.Function.Stream
+start:
+	fmt.Println("Starting VM execution", len(vm.frames), "frames")
 	for frame.ip != len(stream) {
 		opcode := stream[frame.ip]
 		if debug {
@@ -373,7 +383,7 @@ func (vm *VM) Run() {
 			f := frame.closure.Function.Constants[index]
 			fn, ok := f.(object.Function)
 			if !ok {
-				if nfn, ok := f.(object.NativeFunction); ok {
+				if nfn, ok := f.(NativeFunction); ok {
 					fmt.Println("Calling native function from closure opcode", nfn.Name)
 				}
 				fmt.Println(vm.stack)
@@ -402,14 +412,14 @@ func (vm *VM) Run() {
 			callee := vm.stack[len(vm.stack)-1-argCount]
 			fn, ok := callee.(object.Closure)
 			if !ok {
-				nfn, ok := callee.(object.NativeFunction)
+				nfn, ok := callee.(NativeFunction)
 				if ok {
 					if argCount != nfn.Arity {
 						log.Fatalf("Wrong number of arguments for native function. Expected %d, got %d\n", nfn.Arity, argCount)
 					}
 					// Call the native function
 					args := vm.stack[len(vm.stack)-argCount:]
-					result := nfn.Function(args...)
+					result := nfn.Function(vm, args...)
 					// Pop the arguments and the native function from the stack
 					vm.stack = vm.stack[:len(vm.stack)-argCount-1]
 					// Push the result onto the stack
@@ -470,6 +480,16 @@ func (vm *VM) Run() {
 	if debug {
 		fmt.Println("Ending value of stack: ", vm.stack)
 		fmt.Println("Ending globals: ", globals)
+	}
+	vm.frames = vm.frames[:len(vm.frames)-1]
+	fmt.Println("Finished VM execution", len(vm.frames), "frames left", vm.stack)
+	if vm.HadPendingEvents() {
+		vm.ExecuteNextCallback()
+		fmt.Println("Returned from callback")
+		frame = &vm.frames[0]
+		stream = frame.closure.Function.Stream
+		frame.ip = 0
+		goto start
 	}
 
 	vm.Globals[0] = globals[0]

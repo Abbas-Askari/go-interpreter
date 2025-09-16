@@ -26,7 +26,16 @@ func NewServer() {
         print "";
     }
 
-    server.listen = listen;
+    func multiplexer(req, res) {
+        print "req: " + req;
+        print "res: " + res;
+    }
+
+    func startServer(port) {
+        listen(multiplexer, port);
+    }
+
+    server.listen = startServer;
     server.post = post;
     server.get = get;
     return server;

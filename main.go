@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Abbas-Askari/interpreter-v2/colors"
 	"Abbas-Askari/interpreter-v2/compiler"
 	"Abbas-Askari/interpreter-v2/lexer"
 	"Abbas-Askari/interpreter-v2/object"
@@ -46,11 +47,11 @@ func runFile(filename string, debug bool) *object.Map {
 
 	compiler := compiler.NewCompiler()
 
-	globals := object.GetNativeFunctions()
+	globals := vm.GetNativeFunctions()
 	compiler.DefineConstant("exports", object.Map{})
 	compiler.DefineConstant("Array", object.Map{})
 	for _, fun := range globals {
-		compiler.DefineConstant(fun.(object.NativeFunction).Name, fun)
+		compiler.DefineConstant(fun.(vm.NativeFunction).Name, fun)
 	}
 	// put object.Map{} in globals as "exports" as index 0
 	// so user can do exports["key"] = "value"
@@ -91,4 +92,5 @@ func runFile(filename string, debug bool) *object.Map {
 func main() {
 	filename := "/home/abbas/repos/interpreter-v2/exports.test.lox"
 	runFile(filename, false)
+	fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
 }
