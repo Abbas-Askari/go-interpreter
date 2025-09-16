@@ -3,6 +3,7 @@ package vm
 import (
 	"Abbas-Askari/interpreter-v2/object"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
@@ -71,8 +72,73 @@ func GetNativeFunctions() []object.Object {
 				}
 				eventIndex := vm.RegisterEvent(closure.(object.Closure))
 				helloHandler := func(w http.ResponseWriter, r *http.Request) {
-					vm.FireEvent(eventIndex, object.String{Value: r.URL.Path}, object.String{Value: r.URL.Path})
-					fmt.Fprintf(w, "Hello, World!")
+					done := make(chan struct{})
+
+					headers := object.Map{Map: map[string]object.Object{}}
+					for k, v := range r.Header {
+						if len(v) > 0 {
+							headers.Map[k] = object.String{Value: v[0]}
+						}
+					}
+					body := NativeFunction{
+						Function: func(vm *VM, args ...object.Object) object.Object {
+							buf := make([]byte, r.ContentLength)
+							_, err := r.Body.Read(buf)
+							if err != nil {
+								log.Println("Error reading body:", err)
+								return object.String{Value: ""}
+							}
+							return object.String{Value: string(buf)}
+						}, Arity: 0, Name: "readBody",
+					}
+					req := object.Map{Map: map[string]object.Object{
+						"path":    object.String{Value: r.URL.Path},
+						"headers": headers,
+						"method":  object.String{Value: r.Method},
+						"body":    body,
+					}}
+					// fire event with req and res objects
+
+					writeHeader := NativeFunction{
+						Function: func(vm *VM, args ...object.Object) object.Object {
+							statusCode, ok := args[0].(object.Number)
+							if !ok {
+								panic("First argument to writeHeader must be a number")
+							}
+							w.WriteHeader(int(statusCode.Value))
+							return object.Nil{}
+						}, Arity: 1, Name: "writeHeader",
+					}
+					writeBody := NativeFunction{
+						Function: func(vm *VM, args ...object.Object) object.Object {
+							body, ok := args[0].(object.String)
+							if !ok {
+								panic("First argument to write must be a string")
+							}
+							_, err := w.Write([]byte(body.Value))
+							if err != nil {
+								log.Println("Error writing body:", err)
+							}
+							return object.Nil{}
+						}, Arity: 1, Name: "write",
+					}
+					end := NativeFunction{
+						Function: func(vm *VM, args ...object.Object) object.Object {
+							close(done)
+							return object.Nil{}
+						}, Arity: 0, Name: "end",
+					}
+					// create a
+					// response object with writeHeader and write functions
+
+					res := object.Map{Map: map[string]object.Object{
+						"writeHeader": writeHeader,
+						"write":       writeBody,
+						"end":         end,
+					}}
+					vm.FireEvent(eventIndex, req, res)
+
+					<-done
 				}
 				http.HandleFunc("/", helloHandler)
 

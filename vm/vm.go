@@ -140,7 +140,6 @@ func (vm *VM) Run() {
 	debug := false
 	stream := frame.closure.Function.Stream
 start:
-	fmt.Println("Starting VM execution", len(vm.frames), "frames")
 	for frame.ip != len(stream) {
 		opcode := stream[frame.ip]
 		if debug {
@@ -482,10 +481,8 @@ start:
 		fmt.Println("Ending globals: ", globals)
 	}
 	vm.frames = vm.frames[:len(vm.frames)-1]
-	fmt.Println("Finished VM execution", len(vm.frames), "frames left", vm.stack)
 	if vm.HadPendingEvents() {
 		vm.ExecuteNextCallback()
-		fmt.Println("Returned from callback")
 		frame = &vm.frames[0]
 		stream = frame.closure.Function.Stream
 		frame.ip = 0

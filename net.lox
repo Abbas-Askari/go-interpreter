@@ -29,6 +29,8 @@ func NewServer() {
     func multiplexer(req, res) {
         print "req: " + req;
         print "res: " + res;
+        res.write("Hello from multiplexer");
+        res.end();
     }
 
     func startServer(port) {

@@ -3,7 +3,6 @@ package vm
 import (
 	"Abbas-Askari/interpreter-v2/object"
 	"Abbas-Askari/interpreter-v2/op"
-	"fmt"
 	"log"
 )
 
@@ -51,7 +50,6 @@ func (vm *VM) ExecuteNextCallback() {
 		vm.cond.Wait()
 	}
 	callback := vm.callbackQueue[0]
-	fmt.Println("Executing callback with", len(callback.args), "args")
 	vm.callbackQueue = vm.callbackQueue[1:]
 	vm.mu.Unlock()
 	vm.Push(callback.function)
