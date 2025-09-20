@@ -38,19 +38,25 @@ type Target struct {
 	outer *Target
 }
 
-func NewCompiler() *Compiler {
+func NewCompiler(scriptName string) *Compiler {
 	c := &Compiler{
 		globals: []string{},
-		target:  NewTarget(nil),
+		target:  NewTarget(nil, scriptName),
 	}
 	c.EnterScope()
 	return c
 }
 
-func NewTarget(outer *Target) *Target {
+func NewTarget(outer *Target, name string) *Target {
 	t := SCRIPT_TARGET
-	if outer != nil {
+	scriptName := name
+	moduleScript := outer
+	if moduleScript != nil {
 		t = FUNCTION_TARGET
+		for moduleScript != nil {
+			scriptName = moduleScript.function.ScriptName
+			moduleScript = moduleScript.outer
+		}
 	}
 
 	store := []Symbol{}
@@ -60,7 +66,9 @@ func NewTarget(outer *Target) *Target {
 
 	return &Target{
 		function: object.Function{
-			Stream: []op.OpCode{},
+			Stream:     []op.OpCode{},
+			Name:       name,
+			ScriptName: scriptName,
 		},
 		targetType: t,
 		scope: &SymbolTable{
@@ -71,8 +79,8 @@ func NewTarget(outer *Target) *Target {
 	}
 }
 
-func (c *Compiler) EnterTarget() {
-	t := NewTarget(c.target)
+func (c *Compiler) EnterTarget(name string) {
+	t := NewTarget(c.target, name)
 	// c.Declare("this")
 	c.target = t
 	if c.target != nil {
@@ -92,8 +100,8 @@ func (c *Compiler) ExitTarget(arity int) int {
 		if upValue.IsLocal {
 			local = 1
 		}
-		c.Emit(op.OpCode(local))
-		c.Emit(op.OpCode(upValue.Index))
+		c.Emit(op.OpCode(local), 0, 0)
+		c.Emit(op.OpCode(upValue.Index), 0, 0)
 	}
 	return len(c.target.function.Constants) - 1
 }
@@ -112,15 +120,15 @@ func (c *Compiler) Declare(name string) {
 	scope := LocalScope
 	if c.target.scopeDepth == 0 && c.target.targetType == SCRIPT_TARGET {
 		scope = GlobalScope
-		c.Emit(op.OpSetGlobal)
+		c.Emit(op.OpSetGlobal, 0, 0)
 
 		index := slices.Index(c.globals, name)
 		if index != -1 {
 			panic(fmt.Errorf("Error: %v is already declared", name))
 		}
 		c.globals = append(c.globals, name)
-		c.Emit(op.OpCode(len(c.globals) - 1))
-		c.Emit(op.OpPop)
+		c.Emit(op.OpCode(len(c.globals)-1), 0, 0)
+		c.Emit(op.OpPop, 0, 0)
 		return
 	}
 	// No need to call set local because the expression results is already on the top of the stack. HEHE
@@ -156,9 +164,9 @@ func (c *Compiler) ExitScope() {
 			break
 		}
 		if symbol.isCaptured {
-			c.Emit(op.OpCloseUpValue)
+			c.Emit(op.OpCloseUpValue, 0, 0)
 		} else {
-			c.Emit(op.OpPop)
+			c.Emit(op.OpPop, 0, 0)
 		}
 	}
 	c.target.scope.Store = c.target.scope.Store[:i+1]
@@ -224,25 +232,25 @@ func (c *Compiler) GetIdentifier(name token.Token) {
 	symbol, index, err := c.GetLocal(name, scope)
 	if err == nil {
 		if symbol.Depth != 0 || symbol.Name == "this" {
-			c.Emit(op.OpLoadLocal)
+			c.Emit(op.OpLoadLocal, name.Line, name.Column)
 		}
-		c.Emit(op.OpCode(index))
+		c.Emit(op.OpCode(index), name.Line, name.Column)
 		return
 	}
 
 	// Check upvalues
 	index, err = c.GetUpValue(name, c.target)
 	if err == nil {
-		c.Emit(op.OpGetUpValue)
-		c.Emit(op.OpCode(index))
+		c.Emit(op.OpGetUpValue, name.Line, name.Column)
+		c.Emit(op.OpCode(index), name.Line, name.Column)
 		return
 	}
 
 	// Then check globals
 	index = slices.Index(c.globals, name.Literal)
 	if index != -1 {
-		c.Emit(op.OpLoadGlobal)
-		c.Emit(op.OpCode(index))
+		c.Emit(op.OpLoadGlobal, name.Line, name.Column)
+		c.Emit(op.OpCode(index), name.Line, name.Column)
 		return
 	}
 	panic(fmt.Errorf("Error: Undeclared Identifier: %v", name.Literal))
@@ -254,31 +262,33 @@ func (c *Compiler) SetGlobal(name token.Token) {
 	symbol, index, err := c.GetLocal(name, scope)
 	if err == nil {
 		if symbol.Depth != 0 {
-			c.Emit(op.OpSetLocal)
+			c.Emit(op.OpSetLocal, name.Line, name.Column)
 		}
-		c.Emit(op.OpCode(index))
+		c.Emit(op.OpCode(index), name.Line, name.Column)
 		return
 	}
 
 	index, err = c.GetUpValue(name, c.target)
 	if err == nil {
-		c.Emit(op.OpSetUpValue)
-		c.Emit(op.OpCode(index))
+		c.Emit(op.OpSetUpValue, name.Line, name.Column)
+		c.Emit(op.OpCode(index), name.Line, name.Column)
 		return
 	}
 
 	index = slices.Index(c.globals, name.Literal)
 	if index != -1 {
-		c.Emit(op.OpSetGlobal)
-		c.Emit(op.OpCode(index))
+		c.Emit(op.OpSetGlobal, name.Line, name.Column)
+		c.Emit(op.OpCode(index), name.Line, name.Column)
 		return
 	}
 
 	panic(fmt.Errorf("Error: Undeclared Identifier: %v", name.Literal))
 }
 
-func (c *Compiler) Emit(op op.OpCode) {
+func (c *Compiler) Emit(op op.OpCode, line, column int) {
 	c.target.function.Stream = append(c.target.function.Stream, op)
+	c.target.function.LineInfo = append(c.target.function.LineInfo, line)
+	c.target.function.ColumnInfo = append(c.target.function.ColumnInfo, column)
 }
 
 func (c *Compiler) Compile(statements []parser.Declaration) (object.Function, []object.Object) {

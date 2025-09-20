@@ -50,19 +50,19 @@ type FunctionDeclaration struct {
 }
 
 func (d *FunctionDeclaration) Emit(c interfaces.ICompiler) {
-	c.Emit(op.OpClosure)
-	c.Emit(op.OpCode(0))
+	c.Emit(op.OpClosure, d.name.Line, d.name.Column) // placeholder
+	c.Emit(op.OpCode(0), d.name.Line, d.name.Column)
 	indexIndex := c.GetBytecodeLength() - 1
 	c.Declare(d.name.Literal)
-	c.EnterTarget()
+	c.EnterTarget(d.name.Literal)
 	c.EnterScope()
 	for _, param := range d.parameters {
 		c.Declare(param.token.Literal)
 	}
 	d.body.Emit(c)
 	c.ExitScope()
-	c.Emit(op.OpNil)
-	c.Emit(op.OpReturn)
+	c.Emit(op.OpNil, d.name.Line, d.name.Column)
+	c.Emit(op.OpReturn, d.name.Line, d.name.Column)
 	// d.expression.Emit(c)
 	index := c.ExitTarget(len(d.parameters))
 	c.SetOpCode(indexIndex, op.OpCode(index))
@@ -83,8 +83,8 @@ type ImportDeclaration struct {
 
 func (d *ImportDeclaration) Emit(c interfaces.ICompiler) {
 	index := c.AddConstant(*d.Exports)
-	c.Emit(op.OpConstant)
-	c.Emit(op.OpCode(index))
+	c.Emit(op.OpConstant, d.Module.Line, d.Module.Column)
+	c.Emit(op.OpCode(index), d.Module.Line, d.Module.Column)
 	c.Declare(d.Module.Literal)
 }
 

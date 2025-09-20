@@ -3,6 +3,7 @@ package parser
 import (
 	"Abbas-Askari/interpreter-v2/interfaces"
 	"Abbas-Askari/interpreter-v2/op"
+	"Abbas-Askari/interpreter-v2/token"
 	"fmt"
 )
 
@@ -13,12 +14,13 @@ type Statement interface {
 }
 
 type PrintStatement struct {
+	printToken token.Token
 	expression Expression
 }
 
 func (ps PrintStatement) Emit(c interfaces.ICompiler) {
 	ps.expression.Emit(c)
-	c.Emit(op.OpPrint)
+	c.Emit(op.OpPrint, ps.printToken.Line, ps.printToken.Column)
 }
 
 func (ps PrintStatement) String() string {
@@ -30,12 +32,13 @@ func (ps PrintStatement) Type() DeclarationType {
 }
 
 type ExpressionStatement struct {
-	expression Expression
+	expressionToken token.Token
+	expression      Expression
 }
 
 func (e ExpressionStatement) Emit(c interfaces.ICompiler) {
 	e.expression.Emit(c)
-	c.Emit(op.OpPop)
+	c.Emit(op.OpPop, e.expressionToken.Line, e.expressionToken.Column)
 }
 
 func (ex ExpressionStatement) String() string {
@@ -75,16 +78,16 @@ type IfStatement struct {
 func (b *IfStatement) Emit(c interfaces.ICompiler) {
 	b.condition.Emit(c)
 
-	c.Emit(op.OpJumpIfFalse)
-	c.Emit(op.OpCode(0))
+	c.Emit(op.OpJumpIfFalse, 0, 0)
+	c.Emit(op.OpCode(0), 0, 0)
 
 	jumpLengthIndex := c.GetBytecodeLength() - 1
 
 	b.thenStatement.Emit(c)
 	jumpElseBlockLengthIndex := 0
 	if b.elseStatement != nil {
-		c.Emit(op.OpJump)
-		c.Emit(op.OpCode(0))
+		c.Emit(op.OpJump, 0, 0)
+		c.Emit(op.OpCode(0), 0, 0)
 		jumpElseBlockLengthIndex = c.GetBytecodeLength() - 1
 	}
 
@@ -133,8 +136,8 @@ func (f *ForStatement) Emit(c interfaces.ICompiler) {
 
 	if f.condition != nil {
 		f.condition.Emit(c)
-		c.Emit(op.OpJumpIfFalse)
-		c.Emit(op.OpCode(0))
+		c.Emit(op.OpJumpIfFalse, 0, 0)
+		c.Emit(op.OpCode(0), 0, 0)
 	}
 
 	jumpLengthIndex := c.GetBytecodeLength() - 1
@@ -143,10 +146,10 @@ func (f *ForStatement) Emit(c interfaces.ICompiler) {
 	advancementIndex := c.GetBytecodeLength()
 	if f.advancement != nil {
 		f.advancement.Emit(c)
-		c.Emit(op.OpPop)
+		c.Emit(op.OpPop, 0, 0)
 	}
-	c.Emit(op.OpJump)
-	c.Emit(op.OpCode(startIndex - c.GetBytecodeLength()))
+	c.Emit(op.OpJump, 0, 0)
+	c.Emit(op.OpCode(startIndex-c.GetBytecodeLength()), 0, 0)
 
 	loopEndTarget := c.GetBytecodeLength()
 
@@ -183,8 +186,8 @@ func (f ForStatement) Type() DeclarationType {
 type BreakStatement struct{}
 
 func (b *BreakStatement) Emit(c interfaces.ICompiler) {
-	c.Emit(op.OpBreak)
-	c.Emit(op.OpBreak)
+	c.Emit(op.OpBreak, 0, 0)
+	c.Emit(op.OpBreak, 0, 0)
 }
 
 func (b BreakStatement) String() string {
@@ -198,8 +201,8 @@ func (b BreakStatement) Type() DeclarationType {
 type ContinueStatement struct{}
 
 func (b *ContinueStatement) Emit(c interfaces.ICompiler) {
-	c.Emit(op.OpContinue)
-	c.Emit(op.OpContinue)
+	c.Emit(op.OpContinue, 0, 0)
+	c.Emit(op.OpContinue, 0, 0)
 }
 
 func (b ContinueStatement) String() string {
@@ -218,9 +221,9 @@ func (r *ReturnStatement) Emit(c interfaces.ICompiler) {
 	if r.exp != nil {
 		r.exp.Emit(c)
 	} else {
-		c.Emit(op.OpNil)
+		c.Emit(op.OpNil, 0, 0)
 	}
-	c.Emit(op.OpReturn)
+	c.Emit(op.OpReturn, 0, 0)
 }
 
 func (r ReturnStatement) String() string {

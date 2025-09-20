@@ -1,10 +1,4 @@
-import "broken";
-print "Hello from net";
-
-let s = broken.NewServer();
-// func hand() { print "Hello from handler"; }
-// print "adding get";
-// s.get("/", hand); // breaks here
+import "strings";
 
 func NewHandler(path, handlerFunction) {
     let handler = {};
@@ -17,6 +11,8 @@ func NewHandler(path, handlerFunction) {
         handlerFunction();
     }
 
+    handler.match = match;
+    handler.handle = handle;
     return handler;
 }
 
@@ -29,13 +25,24 @@ func NewServer() {
         NewHandler(path, handlerFunction);
     }
     func get(path, handler) {
-        print NewHandler;
-        NewHandler(path, handler);
+        handlers = handlers.push(NewHandler(path, handler));
+    }
+
+    func printHandlers() {
+        print "Handlers: " + handlers;
     }
 
     func multiplexer(req, res) {
-        res.write("Hello from multiplexer\n");
-        res.write("Available handlers: " + handlers);
+        print "Request URL: " + req.path;
+        for let i = 0; i < handlers.length; i = i + 1 {
+            let h = handlers[i];
+            print "Checking handler: " + h + " for path: " + req.path;
+            if (h.match(req.path)) {
+                print "Matched handler: " + h;
+                h.handle(req, res);
+                return;
+            }
+        }
         res.end();
     }
 
@@ -46,6 +53,7 @@ func NewServer() {
     server.listen = startServer;
     server.post = post;
     server.get = get;
+    server.printHandlers = printHandlers;
     return server;
 }
 

@@ -11,10 +11,14 @@ type Function struct {
 	Arity        int
 	Constants    []Object
 	UpValueCount int
+	LineInfo     []int
+	ColumnInfo   []int
+	Name         string
+	ScriptName   string
 }
 
 func (b Function) String() string {
-	return fmt.Sprintf("FUNCTIONHEHE")
+	return fmt.Sprintf("FUNCTION<%v>", b.Name)
 }
 
 func (b Function) Type() ObjectType {

@@ -45,17 +45,19 @@ func runFile(filename string, debug bool) *object.Map {
 		}
 	}
 
-	compiler := compiler.NewCompiler()
+	compiler := compiler.NewCompiler(filename)
 
 	globals := vm.GetNativeFunctions()
 	compiler.DefineConstant("exports", object.Map{})
 	compiler.DefineConstant("Array", object.Map{})
+	compiler.DefineConstant("String", object.Map{})
 	for _, fun := range globals {
 		compiler.DefineConstant(fun.(vm.NativeFunction).Name, fun)
 	}
 	// put object.Map{} in globals as "exports" as index 0
 	// so user can do exports["key"] = "value"
 	// and access it from other files by import
+	globals = append([]object.Object{*object.PrototypeString}, globals...)
 	globals = append([]object.Object{*object.PrototypeArray}, globals...)
 	globals = append([]object.Object{object.Map{Map: map[string]object.Object{}}}, globals...)
 

@@ -67,11 +67,15 @@ func (vm *VM) ExecuteNextCallback() {
 
 	callerFrame := CallFrame{
 		closure: object.NewClosure(object.Function{
+			Name:       "<callback>",
+			ScriptName: "<callback>",
 			Stream: []op.OpCode{
 				op.OpCall,
 				op.OpCode(argCount),
 				op.OpPop,
 			},
+			LineInfo:   []int{0, 0, 0},
+			ColumnInfo: []int{0, 0, 0},
 		}),
 		bp: len(vm.stack) - 1 - argCount,
 		ip: 0,

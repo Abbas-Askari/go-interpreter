@@ -61,11 +61,14 @@ func Tokenize(input string) []token.Token {
 	tokens := []token.Token{}
 	i := 0
 	line := 1
+	column := 0
 	for i != len(input) {
 		if i+1 < len(input) && string(input[i:i+2]) == "//" {
 			for i < len(input) && input[i] != '\n' {
 				i++
 			}
+			// line++
+			column = 0
 			continue
 		}
 
@@ -76,8 +79,10 @@ func Tokenize(input string) []token.Token {
 					Type:    op.typ,
 					Literal: op.literal,
 					Line:    line,
+					Column:  column,
 				})
 				i += len(op.literal)
+				column += len(op.literal)
 				foundOp = true
 				break
 			}
@@ -110,8 +115,10 @@ func Tokenize(input string) []token.Token {
 				Type:    tokenType,
 				Literal: str,
 				Line:    line,
+				Column:  column,
 			})
 			i += len(str)
+			column += len(str)
 			foundFromKeywords = true
 			break
 		}
@@ -128,6 +135,7 @@ func Tokenize(input string) []token.Token {
 			for '0' <= c && c <= '9' || (!seenDot && c == '.') {
 				number = number + string(c)
 				i++
+				column++
 				if c == '.' {
 					seenDot = true
 				}
@@ -142,6 +150,7 @@ func Tokenize(input string) []token.Token {
 				Type:    "NUMBER",
 				Literal: number,
 				Line:    line,
+				Column:  column,
 			})
 
 			continue
@@ -149,12 +158,14 @@ func Tokenize(input string) []token.Token {
 
 		if c == '\'' || c == '"' {
 			i++
+			column++
 			starting := c
 			c = input[i]
 			str := ""
 			for c != starting {
 				str = str + string(c)
 				i++
+				column++
 				if i < len(input) {
 					c = input[i]
 				} else {
@@ -167,6 +178,7 @@ func Tokenize(input string) []token.Token {
 				Type:    token.STRING,
 				Literal: str,
 				Line:    line,
+				Column:  column,
 			})
 
 			continue
@@ -177,6 +189,7 @@ func Tokenize(input string) []token.Token {
 			for unicode.IsLetter(rune(c)) || unicode.IsDigit(rune(c)) || rune(c) == '_' {
 				str = str + string(c)
 				i++
+				column++
 				if i < len(input) {
 					c = input[i]
 				} else {
@@ -188,6 +201,7 @@ func Tokenize(input string) []token.Token {
 				Type:    token.IDENTIFIER,
 				Literal: str,
 				Line:    line,
+				Column:  column,
 			})
 
 			continue
@@ -197,6 +211,9 @@ func Tokenize(input string) []token.Token {
 			i++
 			if c == '\n' {
 				line++
+				column = 0
+			} else {
+				column++
 			}
 			continue
 		}

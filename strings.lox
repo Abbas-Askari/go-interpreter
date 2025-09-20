@@ -1,0 +1,22 @@
+func endsWith(suffix) {
+    let start = this.length - suffix.length;
+    if (start < 0) return false;
+    return this.substring(start) == suffix;
+}
+
+String.endsWith = endsWith;
+let a = [1, 2, 3];
+print "testing on array";
+
+
+
+
+// func testStack() {
+//     let s = "hello world";
+//     print "testing";
+//     print s.endsWith("world");
+// }
+// 
+// 
+// testStack();
+// 

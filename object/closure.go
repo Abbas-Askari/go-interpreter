@@ -14,7 +14,7 @@ func NewClosure(function Function) Closure {
 }
 
 func (b Closure) String() string {
-	return fmt.Sprintf("CLOSURE<this: %v>", b.This)
+	return fmt.Sprintf("Function<%v>", b.Function.Name)
 }
 
 func (b Closure) Type() ObjectType {

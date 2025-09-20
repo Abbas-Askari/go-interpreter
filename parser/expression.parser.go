@@ -8,24 +8,28 @@ import (
 func (p *Parser) Expression() Expression {
 	exp := p.Or()
 
+	assignmentToken := p.currentToken
 	if assignee, ok := exp.(*IdentifierExpression); ok && p.consumeIfExists(token.ASSIGN) {
 		exp = &AssignmentExpression{
-			assignee:   *assignee,
-			assignment: p.Expression(),
+			assignee:        *assignee,
+			assignment:      p.Expression(),
+			assignmentToken: assignmentToken,
 		}
 	}
 
 	if assignee, ok := exp.(*PropertyExpression); ok && p.consumeIfExists(token.ASSIGN) {
 		exp = &AssignmentExpression{
-			assignee:   *assignee,
-			assignment: p.Expression(),
+			assignee:        *assignee,
+			assignment:      p.Expression(),
+			assignmentToken: assignmentToken,
 		}
 	}
 
 	if assignee, ok := exp.(*IndexExpression); ok && p.consumeIfExists(token.ASSIGN) {
 		exp = &AssignmentExpression{
-			assignee:   *assignee,
-			assignment: p.Expression(),
+			assignee:        *assignee,
+			assignment:      p.Expression(),
+			assignmentToken: assignmentToken,
 		}
 	}
 	return exp
@@ -143,6 +147,7 @@ func (p *Parser) LiteralExpression() Expression {
 			// Function Call
 			if p.consumeIfExists(token.LPAREN) {
 				args := []Expression{}
+				parenToken := p.tokens[p.index-1]
 				if !p.consumeIfExists(token.RPAREN) {
 					for {
 						args = append(args, p.Expression())
@@ -155,10 +160,12 @@ func (p *Parser) LiteralExpression() Expression {
 				exp = &CallExpression{
 					callee:    exp,
 					arguments: args,
+					paren:     parenToken,
 				}
 			}
 			// Property Access
 			if p.consumeIfExists(token.DOT) {
+				dotToken := p.tokens[p.index-1]
 				if p.currentToken.Type != token.IDENTIFIER {
 					panic("Expected property name after '.'")
 				}
@@ -167,15 +174,18 @@ func (p *Parser) LiteralExpression() Expression {
 				exp = &PropertyExpression{
 					object:   exp,
 					property: property.Literal,
+					dotToken: dotToken,
 				}
 			}
 			// Property Access with Index
 			if p.consumeIfExists(token.LBRACKET) {
+				indexToken := p.tokens[p.index-1]
 				index := p.Expression()
 				p.consume(token.RBRACKET, "Expected ']' after index")
 				exp = &IndexExpression{
-					object: exp,
-					index:  index,
+					object:     exp,
+					index:      index,
+					indexToken: indexToken,
 				}
 			}
 		}

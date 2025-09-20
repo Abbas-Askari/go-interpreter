@@ -427,12 +427,13 @@ start:
 					frame.ip++
 					continue
 				}
-				log.Fatal("Can only call functions. Got: ", callee.Type())
+				// parser.Decompile(frame.closure.Function)
+				vm.runtimeError("Can only call functions. Got: %v", callee)
 
 			}
 
 			if argCount != fn.Function.Arity {
-				log.Fatalf("Wrong number of arguments. Expected %d, got %d\n", fn.Function.Arity, argCount)
+				vm.runtimeError("Wrong number of arguments. Expected %d, got %d\n", fn.Function.Arity, argCount)
 			}
 
 			newFrame := CallFrame{

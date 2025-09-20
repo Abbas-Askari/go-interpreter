@@ -7,7 +7,7 @@ import (
 )
 
 type ICompiler interface {
-	Emit(op.OpCode)
+	Emit(op op.OpCode, line int, column int)
 	SetOpCode(int, op.OpCode)
 	GetOpCode(int) op.OpCode
 	AddConstant(object.Object) int
@@ -17,6 +17,6 @@ type ICompiler interface {
 	EnterScope()
 	ExitScope()
 	GetBytecodeLength() int
-	EnterTarget()
+	EnterTarget(string)
 	ExitTarget(arity int) int
 }

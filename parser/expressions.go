@@ -62,7 +62,7 @@ func (b *BinaryExpression) Emit(c interfaces.ICompiler) {
 		token.AND:           op.OpAnd,
 		token.OR:            op.OpOr,
 	}
-	c.Emit(mapping[b.operand.Type])
+	c.Emit(mapping[b.operand.Type], b.operand.Line, b.operand.Column)
 }
 
 type UnaryExpression struct {
@@ -93,7 +93,7 @@ func (b *UnaryExpression) Emit(c interfaces.ICompiler) {
 		return
 	}
 
-	c.Emit(op)
+	c.Emit(op, b.operand.Line, b.operand.Column)
 }
 
 type LiteralExpression struct {
@@ -110,14 +110,14 @@ func (l *LiteralExpression) String() string {
 
 func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
 	if l.token.Type == token.TRUE {
-		c.Emit(op.OpTrue)
+		c.Emit(op.OpTrue, l.token.Line, l.token.Column)
 		return
 	} else if l.token.Type == token.FALSE {
-		c.Emit(op.OpFalse)
+		c.Emit(op.OpFalse, l.token.Line, l.token.Column)
 		return
 	}
 
-	c.Emit(op.OpConstant)
+	c.Emit(op.OpConstant, l.token.Line, l.token.Column)
 	var index int
 
 	if l.token.Type == token.NUMBER {
@@ -138,7 +138,7 @@ func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
 		panic("This shouldn't have happened! Lexer is probably broken")
 	}
 
-	c.Emit(op.OpCode(index))
+	c.Emit(op.OpCode(index), l.token.Line, l.token.Column)
 }
 
 type MapExpression struct {
@@ -154,11 +154,11 @@ func (l *MapExpression) String() string {
 }
 
 func (l *MapExpression) Emit(c interfaces.ICompiler) {
-	c.Emit(op.OpConstant)
+	c.Emit(op.OpConstant, 0, 0) // line and column are unknown here
 	index := c.AddConstant(object.Map{
 		Map: map[string]object.Object{},
 	})
-	c.Emit(op.OpCode(index))
+	c.Emit(op.OpCode(index), 0, 0)
 }
 
 type ArrayExpression struct {
@@ -177,8 +177,8 @@ func (l *ArrayExpression) Emit(c interfaces.ICompiler) {
 	for _, element := range l.elements {
 		element.Emit(c)
 	}
-	c.Emit(op.OpArray)
-	c.Emit(op.OpCode(len(l.elements)))
+	c.Emit(op.OpArray, 0, 0)
+	c.Emit(op.OpCode(len(l.elements)), 0, 0)
 }
 
 type IdentifierExpression struct {
@@ -198,8 +198,9 @@ func (l IdentifierExpression) Emit(c interfaces.ICompiler) {
 }
 
 type AssignmentExpression struct {
-	assignee   Expression
-	assignment Expression
+	assignmentToken token.Token
+	assignee        Expression
+	assignment      Expression
 }
 
 // func (l *AssignmentExpression) GetType() ExpressionType {
@@ -216,13 +217,13 @@ func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
 		c.SetGlobal(ident.token)
 	} else if prop, ok := l.assignee.(PropertyExpression); ok {
 		prop.object.Emit(c)
-		c.Emit(op.OpSetProperty)
+		c.Emit(op.OpSetProperty, l.assignmentToken.Line, l.assignmentToken.Column)
 		index := c.AddConstant(object.String{Value: prop.property})
-		c.Emit(op.OpCode(index))
+		c.Emit(op.OpCode(index), l.assignmentToken.Line, l.assignmentToken.Column)
 	} else if exp, ok := l.assignee.(IndexExpression); ok {
 		exp.object.Emit(c)
 		exp.index.Emit(c)
-		c.Emit(op.OpSetIndex)
+		c.Emit(op.OpSetIndex, l.assignmentToken.Line, l.assignmentToken.Column)
 	} else {
 		panic(fmt.Errorf("Invalid assignment target: %v", l.assignee))
 	}
@@ -231,6 +232,7 @@ func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
 type CallExpression struct {
 	callee    Expression
 	arguments []Expression
+	paren     token.Token
 }
 
 // func (l *CallExpression) GetType() ExpressionType {
@@ -246,12 +248,13 @@ func (l *CallExpression) Emit(c interfaces.ICompiler) {
 	for _, arg := range l.arguments {
 		arg.Emit(c)
 	}
-	c.Emit(op.OpCall)
-	c.Emit(op.OpCode(len(l.arguments)))
+	c.Emit(op.OpCall, l.paren.Line, l.paren.Column)
+	c.Emit(op.OpCode(len(l.arguments)), l.paren.Line, l.paren.Column)
 }
 
 type PropertyExpression struct {
 	object   Expression
+	dotToken token.Token
 	property string
 }
 
@@ -261,14 +264,15 @@ func (l PropertyExpression) String() string {
 
 func (l PropertyExpression) Emit(c interfaces.ICompiler) {
 	l.object.Emit(c)
-	c.Emit(op.OpGetProperty)
+	c.Emit(op.OpGetProperty, l.dotToken.Line, l.dotToken.Column)
 	index := c.AddConstant(object.String{Value: l.property})
-	c.Emit(op.OpCode(index))
+	c.Emit(op.OpCode(index), l.dotToken.Line, l.dotToken.Column)
 }
 
 type IndexExpression struct {
-	object Expression
-	index  Expression
+	object     Expression
+	index      Expression
+	indexToken token.Token
 }
 
 func (l IndexExpression) String() string {
@@ -278,5 +282,5 @@ func (l IndexExpression) String() string {
 func (l IndexExpression) Emit(c interfaces.ICompiler) {
 	l.object.Emit(c)
 	l.index.Emit(c)
-	c.Emit(op.OpGetIndex)
+	c.Emit(op.OpGetIndex, l.indexToken.Line, l.indexToken.Column)
 }
