@@ -18,7 +18,7 @@ type Function struct {
 }
 
 func (b Function) String() string {
-	return fmt.Sprintf("FUNCTION<%v>", b.Name)
+	return fmt.Sprintf("f<%v>", b.Name)
 }
 
 func (b Function) Type() ObjectType {

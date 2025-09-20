@@ -7,8 +7,8 @@ func NewHandler(path, handlerFunction) {
         return x.endsWith(path);      
     }
 
-    func handle() {
-        handlerFunction();
+    func handle(req, res) {
+        handlerFunction(req, res);
     }
 
     handler.match = match;
@@ -36,13 +36,13 @@ func NewServer() {
         print "Request URL: " + req.path;
         for let i = 0; i < handlers.length; i = i + 1 {
             let h = handlers[i];
-            print "Checking handler: " + h + " for path: " + req.path;
             if (h.match(req.path)) {
-                print "Matched handler: " + h;
                 h.handle(req, res);
                 return;
             }
         }
+        res.writeStatus(404);
+        res.write("No handler for " + req.path + "\n");
         res.end();
     }
 

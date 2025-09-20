@@ -126,7 +126,6 @@ type ForStatement struct {
 }
 
 func (f *ForStatement) Emit(c interfaces.ICompiler) {
-	fmt.Println("Entering for Statement")
 	c.EnterScope()
 	if f.initialization != nil {
 		f.initialization.Emit(c)
@@ -172,7 +171,6 @@ func (f *ForStatement) Emit(c interfaces.ICompiler) {
 	}
 
 	c.ExitScope()
-	fmt.Println("Exiting for Statement")
 }
 
 func (f ForStatement) String() string {

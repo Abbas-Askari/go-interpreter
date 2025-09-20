@@ -101,13 +101,20 @@ func GetNativeFunctions() []object.Object {
 
 					writeHeader := NativeFunction{
 						Function: func(vm *VM, args ...object.Object) object.Object {
+							w.Header().Set(args[0].String(), args[1].String())
+							fmt.Println("Set header:", args[0].String(), args[1].String())
+							return object.Nil{}
+						}, Arity: 2, Name: "writeHeader",
+					}
+					writeStatus := NativeFunction{
+						Function: func(vm *VM, args ...object.Object) object.Object {
 							statusCode, ok := args[0].(object.Number)
 							if !ok {
-								panic("First argument to writeHeader must be a number")
+								panic("First argument to writeStatus must be a number")
 							}
 							w.WriteHeader(int(statusCode.Value))
 							return object.Nil{}
-						}, Arity: 1, Name: "writeHeader",
+						}, Arity: 1, Name: "writeStatus",
 					}
 					writeBody := NativeFunction{
 						Function: func(vm *VM, args ...object.Object) object.Object {
@@ -132,6 +139,7 @@ func GetNativeFunctions() []object.Object {
 					// response object with writeHeader and write functions
 
 					res := object.Map{Map: map[string]object.Object{
+						"writeStatus": writeStatus,
 						"writeHeader": writeHeader,
 						"write":       writeBody,
 						"end":         end,

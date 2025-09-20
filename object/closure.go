@@ -1,6 +1,9 @@
 package object
 
-import "fmt"
+import (
+	"Abbas-Askari/interpreter-v2/colors"
+	"fmt"
+)
 
 type Closure struct {
 	Function Function
@@ -14,7 +17,7 @@ func NewClosure(function Function) Closure {
 }
 
 func (b Closure) String() string {
-	return fmt.Sprintf("Function<%v>", b.Function.Name)
+	return colors.Colorize(fmt.Sprintf("FUNC<%v>", b.Function.Name), colors.BLUE)
 }
 
 func (b Closure) Type() ObjectType {

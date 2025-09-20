@@ -1,10 +1,19 @@
+func substring(start, end) {
+    let result = "";
+    for let i = start; i < end; i = i + 1 {
+        result = result + this[i];
+    }
+    return result;
+}
+
 func endsWith(suffix) {
     let start = this.length - suffix.length;
     if (start < 0) return false;
-    return this.substring(start) == suffix;
+    return this.substring(start, this.length) == suffix;
 }
 
 String.endsWith = endsWith;
+String.substring = substring;
 let a = [1, 2, 3];
 print "testing on array";
 

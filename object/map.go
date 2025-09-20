@@ -1,13 +1,26 @@
 package object
 
-import "fmt"
+import (
+	"Abbas-Askari/interpreter-v2/colors"
+	"fmt"
+)
 
 type Map struct {
 	Map map[string]Object
 }
 
 func (b Map) String() string {
-	return fmt.Sprint(b.Map)
+	str := fmt.Sprint(colors.Colorize("{", colors.RESET))
+	i := 0
+	for k, v := range b.Map {
+		str += fmt.Sprintf("%v: %v", k, v)
+		if i != len(b.Map)-1 {
+			str += ", "
+		}
+		i++
+	}
+	str += fmt.Sprint(colors.Colorize("}", colors.RESET))
+	return str
 }
 
 func (b Map) Type() ObjectType {

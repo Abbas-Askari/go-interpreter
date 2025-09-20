@@ -6,7 +6,10 @@ let server = net.NewServer();
 let users = {};
 
 func handleRoot(req, res) {
-    res.json('{"message": "Hello"}');
+    res.writeHeader("Content-Type", "application/json");
+    // res.writeStatus(201);
+    res.write('{"message": "Hello"}');
+    res.end();
 }
 
 func addUser(req,res) {
