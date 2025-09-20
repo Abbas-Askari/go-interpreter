@@ -1,10 +1,4 @@
-import "broken";
-print "Hello from net";
-
-let s = broken.NewServer();
-// func hand() { print "Hello from handler"; }
-// print "adding get";
-// s.get("/", hand); // breaks here
+print "Hello from BROKEN";
 
 func NewHandler(path, handlerFunction) {
     let handler = {};
@@ -20,16 +14,19 @@ func NewHandler(path, handlerFunction) {
     return handler;
 }
 
-print NewHandler;
+print "NewHandler: " + NewHandler;
+
+let p = "p";
 
 func NewServer() {
+    print p;
     let server = {};
     let handlers = [];
     func post(path, handlerFunction) {
-        NewHandler(path, handlerFunction);
+        // NewHandler(path, handlerFunction);
     }
+    print "NewHandler: " + NewHandler;
     func get(path, handler) {
-        print NewHandler;
         NewHandler(path, handler);
     }
 
@@ -49,7 +46,5 @@ func NewServer() {
     return server;
 }
 
-print NewServer();
-
-print "Goodbye from net";
 exports.NewServer = NewServer;
+print "bye from BROKEN";

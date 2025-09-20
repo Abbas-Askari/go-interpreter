@@ -38,6 +38,15 @@ type Target struct {
 	outer *Target
 }
 
+func NewCompiler() *Compiler {
+	c := &Compiler{
+		globals: []string{},
+		target:  NewTarget(nil),
+	}
+	c.EnterScope()
+	return c
+}
+
 func NewTarget(outer *Target) *Target {
 	t := SCRIPT_TARGET
 	if outer != nil {
@@ -87,14 +96,6 @@ func (c *Compiler) ExitTarget(arity int) int {
 		c.Emit(op.OpCode(upValue.Index))
 	}
 	return len(c.target.function.Constants) - 1
-}
-
-func NewCompiler() *Compiler {
-	c := &Compiler{
-		globals: []string{},
-		target:  NewTarget(nil),
-	}
-	return c
 }
 
 func (c *Compiler) AddConstant(o object.Object) int {
