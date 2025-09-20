@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"Abbas-Askari/interpreter-v2/colors"
 	"Abbas-Askari/interpreter-v2/token"
 	"fmt"
 )
@@ -300,5 +301,6 @@ func (p *Parser) LiteralExpression(isConstructorCall bool) Expression {
 	if p.consumeIfExists(token.NEW) {
 		return p.LiteralExpression(true)
 	}
-	panic(fmt.Errorf("Unexpected token: %v,\ntokens: %v,\nindex: %d\nlength: %d", p.currentToken, p.tokens, p.index, len(p.tokens)))
+
+	panic(fmt.Errorf("Unexpected token: '%v'. Expected an expression", colors.Colorize(p.currentToken.Literal, colors.RED)))
 }

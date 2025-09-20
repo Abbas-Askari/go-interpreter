@@ -234,3 +234,15 @@ func (r ReturnStatement) String() string {
 func (r ReturnStatement) Type() DeclarationType {
 	return StatementDeclarationType
 }
+
+type EmptyStatement struct{}
+
+func (r *EmptyStatement) Emit(c interfaces.ICompiler) {}
+
+func (r EmptyStatement) String() string {
+	return "Empty"
+}
+
+func (r EmptyStatement) Type() DeclarationType {
+	return StatementDeclarationType
+}

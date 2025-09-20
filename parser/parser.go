@@ -12,11 +12,13 @@ type Parser struct {
 }
 
 func NewParser(tokens []token.Token) *Parser {
-	return &Parser{
-		tokens:       tokens,
-		currentToken: tokens[0],
-		index:        0,
+	p := &Parser{
+		tokens: tokens,
 	}
+	if len(tokens) > 0 {
+		p.currentToken = tokens[0]
+	}
+	return p
 }
 
 func (p *Parser) Parse() []Declaration {
@@ -154,6 +156,10 @@ func (p *Parser) Statement() Statement {
 		statement = &ReturnStatement{exp: exp}
 		p.consume(token.SEMICOLON, "Expected a semicolon")
 	} else {
+		if p.currentToken.Type == token.SEMICOLON {
+			p.move()
+			return &EmptyStatement{}
+		}
 		statement = ExpressionStatement{expression: p.Expression()}
 		p.consume(token.SEMICOLON, "Expected a semicolon")
 	}
