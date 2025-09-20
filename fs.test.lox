@@ -1,1 +1,33 @@
-;;;
+import "fs";
+import "net";
+import "math";
+
+let f = fs.open("test.txt", "r");
+
+// let content = f.readAll();
+// print "File content length: " + content.length;
+
+let server = new net.Server();
+
+func handleStream(req, res) {
+    res.writeHeader("Content-Type", "text/plain");
+    res.writeHeader("Transfer-Encoding", "chunked");
+    // Stream data here;
+    for let i = 0; i < f.length() / 1024; i = i + 1 {
+        let result = f.read(math.min(1024, f.length() - i * 1024));
+        let chunk = result[0];
+        let err = result[1];
+        if err != nil {
+            print "Error reading file chunk: " + err;
+            break;
+        }
+        // let chunk = content.substring(i * 1024, (i + 1) * 1024);
+        res.write(chunk);
+    }
+    res.end();
+}
+server.get("/stream", handleStream);
+print server.printHandlers();
+server.listen(3000);
+
+print "Server started on port http://localhost:3000";

@@ -3,7 +3,19 @@ package object
 import "fmt"
 
 type Array struct {
-	Value []Object
+	Value     []Object
+	__proto__ *Map
+}
+
+func NewArray(value []Object) Array {
+	__proto__ := &Map{
+		Map: map[string]Object{
+			"length":    Number{Value: float64(len(value))},
+			"__proto__": PrototypeArray,
+		},
+	}
+	arr := Array{Value: value, __proto__: __proto__}
+	return arr
 }
 
 func (b Array) String() string {
@@ -28,7 +40,7 @@ func (b Array) Add(o Object) Object {
 	if !ok {
 		panic("Can only add Array to Array")
 	}
-	return Array{Value: append(b.Value, arr.Value...)}
+	return NewArray(append(b.Value, arr.Value...))
 }
 
 func (b Array) Sub(o Object) Object {
@@ -68,10 +80,5 @@ var PrototypeArray *Map = &Map{
 }
 
 func (b Array) GetPrototype() *Map {
-	return &Map{
-		Map: map[string]Object{
-			"length":    Number{Value: float64(len(b.Value))},
-			"__proto__": PrototypeArray,
-		},
-	}
+	return b.__proto__
 }

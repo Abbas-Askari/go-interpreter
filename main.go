@@ -32,10 +32,16 @@ func runFile(filename string, debug bool) *object.Map {
 		fmt.Println("---------------------------")
 	}
 
+	lib := vm.GetLibraryMaps()
 	for _, stmt := range statements {
 		if imp, ok := stmt.(*parser.ImportDeclaration); ok {
 			if debug {
 				fmt.Println("Importing module:", imp.Module.Literal)
+			}
+			module := lib[imp.Module.Literal]
+			if module != nil {
+				imp.Exports = module
+				continue
 			}
 			modulePath := "./" + imp.Module.Literal + ".lox"
 			if _, err := os.Stat(modulePath); os.IsNotExist(err) {
@@ -48,6 +54,7 @@ func runFile(filename string, debug bool) *object.Map {
 	compiler := compiler.NewCompiler(filename)
 
 	globals := vm.GetNativeFunctions()
+
 	compiler.DefineConstant("exports", object.Map{})
 	compiler.DefineConstant("Array", object.Map{})
 	compiler.DefineConstant("String", object.Map{})

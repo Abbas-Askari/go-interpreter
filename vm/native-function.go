@@ -57,6 +57,5 @@ func GetNativeFunctions() []object.Object {
 		},
 
 		getNet(),
-		getFileSystem(),
 	}
 }

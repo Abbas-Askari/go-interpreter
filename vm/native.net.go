@@ -52,7 +52,6 @@ func getNet() NativeFunction {
 				writeHeader := NativeFunction{
 					Function: func(vm *VM, args ...object.Object) object.Object {
 						w.Header().Set(args[0].String(), args[1].String())
-						fmt.Println("Set header:", args[0].String(), args[1].String())
 						return object.Nil{}
 					}, Arity: 2, Name: "writeHeader",
 				}

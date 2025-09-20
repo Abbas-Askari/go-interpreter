@@ -38,6 +38,8 @@ func NewFunction(arity int, name string, scriptName string, stream []op.OpCode, 
 		Constants:  []Object{},
 		Name:       name,
 		ScriptName: scriptName,
+		LineInfo:   lineInfo,
+		ColumnInfo: columnInfo,
 		__proto__:  __proto__,
 	}
 }

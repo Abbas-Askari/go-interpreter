@@ -52,6 +52,13 @@ func (b Map) GetPrototype() *Map {
 	if !ok {
 		return nil
 	}
-	mPtr := m.(Map)
+	mPtr, ok := m.(Map)
+	if !ok {
+		mPtr, ok := m.(*Map)
+		if !ok {
+			return nil
+		}
+		return mPtr
+	}
 	return &mPtr
 }

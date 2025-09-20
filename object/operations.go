@@ -7,6 +7,14 @@ func Equal(left, right Object) Object {
 		return Boolean{Value: false}
 	}
 
+	if right.Type() == STRING {
+		return Boolean{Value: right.(String).Value == left.(String).Value}
+	}
+
+	if right.Type() == NUMBER {
+		return Boolean{Value: right.(Number).Value == left.(Number).Value}
+	}
+
 	if right.Type() == CLOSURE {
 		refA := right.(Closure).Function
 		refB := left.(Closure).Function

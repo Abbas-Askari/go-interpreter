@@ -314,14 +314,11 @@ start:
 			length := int(stream[frame.ip+1])
 			frame.ip++
 			elements := vm.stack[len(vm.stack)-length:]
-			// fmt.Println("Elements: ", elements)
 			vm.stack = vm.stack[:len(vm.stack)-length]
-			// fmt.Println("Stack after popping elements: ", vm.stack, elements)
 			detached := make([]object.Object, len(elements))
 			copy(detached, elements)
-			arr := object.Array{Value: detached}
+			arr := object.NewArray(detached)
 			vm.Push(arr)
-			// fmt.Println("Stack after popping elements: ", vm.stack, arr, elements)
 
 		case op.OpJump:
 			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop

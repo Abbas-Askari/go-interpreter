@@ -1,41 +1,39 @@
 import "strings";
+import "Arrays";
 
-func NewHandler(path, handlerFunction) {
-    let handler = {};
-    
-    func match(x)  {
-        return x.endsWith(path);      
-    }
-
-    func handle(req, res) {
-        handlerFunction(req, res);
-    }
-
-    handler.match = match;
-    handler.handle = handle;
-    return handler;
+func Handler(path, handlerFunction) {
+    this.path = path;
+    this.handlerFunction = handlerFunction;
 }
 
-print NewHandler;
+Handler.prototype.match = (x) => {
+    let res = x.endsWith(this.path);  
+    print "Matching " + x + " with " + this.path + ": " + res; 
+    return res;
+};
 
-func NewServer() {
-    let server = {};
-    let handlers = [];
-    func post(path, handlerFunction) {
-        NewHandler(path, handlerFunction);
-    }
-    func get(path, handler) {
-        handlers = handlers.push(NewHandler(path, handler));
-    }
+Handler.prototype.handle = (req, res) => {
+    this.handlerFunction(req, res);
+};
 
-    func printHandlers() {
-        print "Handlers: " + handlers;
-    }
+func Server() {
+    this.handlers = [];
 
-    func multiplexer(req, res) {
+    this.post = (path, handlerFunction) => {
+        this.handlers = this.handlers.push(new Handler(path, handlerFunction));
+    };
+    this.get = (path, handler) => {
+        this.handlers = this.handlers.push(new Handler(path, handler));
+    };
+
+    this.printHandlers = () => {
+        print "Handlers: " + this.handlers;
+    };
+
+    this.multiplexer = (req, res) => {
         print "Request URL: " + req.path;
-        for let i = 0; i < handlers.length; i = i + 1 {
-            let h = handlers[i];
+        for let i = 0; i < this.handlers.length; i = i + 1 {
+            let h = this.handlers[i];
             if (h.match(req.path)) {
                 h.handle(req, res);
                 return;
@@ -44,20 +42,11 @@ func NewServer() {
         res.writeStatus(404);
         res.write("No handler for " + req.path + "\n");
         res.end();
-    }
+    };
 
-    func startServer(port) {
-        listen(multiplexer, port);
-    }
-
-    server.listen = startServer;
-    server.post = post;
-    server.get = get;
-    server.printHandlers = printHandlers;
-    return server;
+    this.listen = (port) => {
+        listen(this.multiplexer, port);
+    };
 }
 
-print NewServer();
-
-print "Goodbye from net";
-exports.NewServer = NewServer;
+exports.Server = Server;

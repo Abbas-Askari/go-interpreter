@@ -8,24 +8,10 @@ func substring(start, end) {
 
 func endsWith(suffix) {
     let start = this.length - suffix.length;
-    if (start < 0) return false;
-    return this.substring(start, this.length) == suffix;
+    if start < 0 return false;
+    let sub = this.substring(start, this.length);
+    return sub == suffix;
 }
 
 String.endsWith = endsWith;
 String.substring = substring;
-let a = [1, 2, 3];
-print "testing on array";
-
-
-
-
-// func testStack() {
-//     let s = "hello world";
-//     print "testing";
-//     print s.endsWith("world");
-// }
-// 
-// 
-// testStack();
-// 

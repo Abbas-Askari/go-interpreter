@@ -165,6 +165,41 @@ func Tokenize(input string) []token.Token {
 			c = input[i]
 			str := ""
 			for c != starting {
+				if c == '\\' {
+					if i+1 < len(input) {
+						nextChar := input[i+1]
+						if nextChar == 'n' {
+							c = '\n'
+							i++
+							column++
+						} else if nextChar == 't' {
+							c = '\t'
+							i++
+							column++
+						} else if nextChar == 'r' {
+							c = '\r'
+							i++
+							column++
+						} else if nextChar == '\\' {
+							c = '\\'
+							i++
+							column++
+						} else if nextChar == '\'' {
+							c = '\''
+							i++
+							column++
+						} else if nextChar == '"' {
+							c = '"'
+							i++
+							column++
+						} else {
+							str = str + string(c)
+							i++
+							column++
+						}
+
+					}
+				}
 				str = str + string(c)
 				i++
 				column++
