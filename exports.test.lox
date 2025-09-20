@@ -12,6 +12,21 @@ func handleRoot(req, res) {
     res.end();
 }
 
+func handleStream(req, res) {
+    res.writeHeader("Content-Type", "text/plain");
+    res.writeHeader("Transfer-Encoding", "chunked");
+    // Stream data here
+    for let i = 0; i < 10000; i = i + 1 {
+        res.write("Chunk " + i + "\n");
+        res.flush();
+        // Simulate some delay
+        for let j = 0; j < 1000000; j = j + 1 {
+            999 * 999;
+        }
+    }
+    res.end();
+}
+
 func addUser(req,res) {
     let splits = req.path.split('/');
     let userId = splits[splits.length - 1];
@@ -27,5 +42,6 @@ let g = server.get;
 // server.post("/user/:id", addUser);
 print "Starting server on port 2000";
 server.get("/", handleRoot);
+server.get("/stream", handleStream);
 server.printHandlers();
 server.listen(2000);
