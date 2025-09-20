@@ -70,3 +70,14 @@
 
 - [x] add test.lox to watch
 - [ ] add individual tests for features.
+
+### 22 sept tasks
+
+- [ ] add more `fs` functions
+  - MVP (8 funcs): readFile, writeFile, appendFile, stat, exists, readDir, mkdir, remove
+  - Streaming (4–5 funcs): open, close, read, write, seek
+- [ ] add `fetch` under http
+- [ ] add `TCP` support
+  - write `psql` driver?
+- [ ] add `setInterval` and `setTimeout`
+- [ ] runtime (2–3 funcs: print, exit, stacktrace)
