@@ -65,11 +65,7 @@ func NewTarget(outer *Target, name string) *Target {
 	}
 
 	return &Target{
-		function: object.Function{
-			Stream:     []op.OpCode{},
-			Name:       name,
-			ScriptName: scriptName,
-		},
+		function:   object.NewFunction(0, name, scriptName, []op.OpCode{}, []int{}, []int{}, []object.Object{}),
 		targetType: t,
 		scope: &SymbolTable{
 			Store: store,
@@ -134,6 +130,9 @@ func (c *Compiler) Declare(name string) {
 	// No need to call set local because the expression results is already on the top of the stack. HEHE
 	// c.Emit(op.OpSetLocal)
 	for _, symbol := range c.target.scope.Store {
+		if symbol.Name == "<anonymous>" {
+			continue
+		}
 		if symbol.Name == name && symbol.Depth == c.target.scopeDepth {
 			panic(fmt.Errorf("Error: %v is already declared", name))
 		}

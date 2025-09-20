@@ -134,10 +134,10 @@ func (p *Parser) Unary() Expression {
 		}
 	}
 
-	return p.LiteralExpression()
+	return p.LiteralExpression(false)
 }
 
-func (p *Parser) LiteralExpression() Expression {
+func (p *Parser) LiteralExpression(isConstructorCall bool) Expression {
 	if p.currentToken.Type == token.IDENTIFIER {
 		var exp Expression = &IdentifierExpression{
 			token: p.currentToken,
@@ -190,7 +190,20 @@ func (p *Parser) LiteralExpression() Expression {
 			}
 		}
 
+		if isConstructorCall {
+			call, ok := exp.(*CallExpression)
+			if !ok {
+				panic("Expected function call after 'new'")
+			}
+			call.isConstructorCall = true
+			return call
+		}
+
 		return exp
+	}
+
+	if isConstructorCall {
+		panic("Expected identifier after 'new'")
 	}
 
 	if p.match(token.NUMBER, token.STRING, token.TRUE, token.FALSE, token.NIL) {
@@ -244,10 +257,48 @@ func (p *Parser) LiteralExpression() Expression {
 
 	if p.consumeIfExists(token.LPAREN) {
 		// Not introducing a Grouping struct, Will just return a normal expression because of laziness
-		exp := p.Expression()
-		p.consume(token.RPAREN, "Unclosed '(', Expected ')'")
-		return exp
+		parameters := []IdentifierExpression{}
+		if !p.consumeIfExists(token.RPAREN) {
+			exp := p.Expression()
+			if p.currentToken.Type == token.RPAREN && p.tokens[p.index+1].Type != token.ARROW {
+				p.consume(token.RPAREN, "Expected ')' after argument list")
+				return exp
+			}
+			if ident, ok := exp.(*IdentifierExpression); ok {
+				parameters = append(parameters, *ident)
+			} else {
+				panic("Expected parameter name for arrow function")
+			}
+			for p.consumeIfExists(token.COMMA) {
+				param, ok := p.Expression().(*IdentifierExpression)
+				if !ok {
+					panic("Expected parameter name for arrow function")
+				}
+				parameters = append(parameters, *param)
+			}
+			p.consume(token.RPAREN, "Expected ')' after argument list")
+		}
+		p.consume(token.ARROW, "Expected '=>' after parameter list")
+
+		var body BlockStatement
+		if p.consumeIfExists(token.LBRACE) {
+			body = p.blockStatement()
+		} else {
+			body = BlockStatement{
+				declarations: []Declaration{&ReturnStatement{
+					exp: p.Expression(),
+				}},
+			}
+		}
+		return &FunctionDeclaration{
+			name:       token.Token{Type: token.IDENTIFIER, Literal: "<anonymous>"},
+			body:       body,
+			parameters: parameters,
+		}
 	}
 
-	panic(fmt.Errorf("Unexpected token: %v", p.currentToken))
+	if p.consumeIfExists(token.NEW) {
+		return p.LiteralExpression(true)
+	}
+	panic(fmt.Errorf("Unexpected token: %v,\ntokens: %v,\nindex: %d\nlength: %d", p.currentToken, p.tokens, p.index, len(p.tokens)))
 }

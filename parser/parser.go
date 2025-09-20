@@ -137,14 +137,7 @@ func (p *Parser) Statement() Statement {
 			body:           p.Statement(),
 		}
 	} else if p.consumeIfExists(token.LBRACE) {
-		declarations := []Declaration{}
-		for !p.consumeIfExists(token.RBRACE) {
-			declarations = append(declarations, p.Declaration())
-		}
-		// if p.index == len(p.tokens) &&
-		statement = &BlockStatement{
-			declarations: declarations,
-		}
+		statement = p.blockStatement()
 	} else if p.consumeIfExists(token.PRINT) {
 		statement = p.printStatement()
 	} else if p.consumeIfExists(token.BREAK) {
@@ -166,6 +159,16 @@ func (p *Parser) Statement() Statement {
 	}
 
 	return statement
+}
+
+func (p *Parser) blockStatement() BlockStatement {
+	declarations := []Declaration{}
+	for !p.consumeIfExists(token.RBRACE) {
+		declarations = append(declarations, p.Declaration())
+	}
+	return BlockStatement{
+		declarations: declarations,
+	}
 }
 
 func (p *Parser) printStatement() Statement {

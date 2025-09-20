@@ -15,6 +15,7 @@ func Tokenize(input string) []token.Token {
 		literal string
 		typ     token.TokenType
 	}{
+		{"=>", token.ARROW},
 		{"==", token.EQUAL_EQUAL},
 		{"!=", token.NOT_EQUAL},
 		{"<=", token.LESS_EQUAL},
@@ -56,6 +57,7 @@ func Tokenize(input string) []token.Token {
 		"return":   token.RETURN,
 		"nil":      token.NIL,
 		"import":   token.IMPORT,
+		"new":      token.NEW,
 	}
 
 	tokens := []token.Token{}

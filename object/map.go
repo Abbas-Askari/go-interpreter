@@ -48,5 +48,10 @@ func (b Map) GetTruthy() Boolean {
 }
 
 func (b Map) GetPrototype() *Map {
-	return nil
+	m, ok := b.Map["__proto__"]
+	if !ok {
+		return nil
+	}
+	mPtr := m.(Map)
+	return &mPtr
 }

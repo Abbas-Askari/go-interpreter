@@ -12,8 +12,9 @@ import (
 type CallFrame struct {
 	closure object.Closure
 	// slots    []object.Object
-	ip int
-	bp int
+	ip                int
+	bp                int
+	isConstructorCall bool
 }
 
 func (f CallFrame) String() string {
@@ -229,9 +230,18 @@ start:
 			if !ok {
 				log.Fatal("Property name must be a string. Got: ", property.Type())
 			}
-			Map, ok := obj.(object.Map)
+			if obj.Type() == object.NIL {
+				vm.runtimeError("Cannot set property on nil. Setting property '%s'", str.Value)
+			}
+			var Map *object.Map
+			m, ok := obj.(object.Map)
 			if !ok {
-				log.Fatal("Only maps have properties. Got: ", obj.Type())
+				Map = obj.GetPrototype()
+			} else {
+				Map = &m
+			}
+			if Map == nil {
+				vm.runtimeError("Only maps have properties. Got: %v", obj.Type())
 			}
 			Map.Map[str.Value] = value
 
@@ -251,7 +261,9 @@ start:
 			} else {
 				Map = &m
 			}
-
+			if obj.Type() == object.NIL {
+				vm.runtimeError("Cannot get property on nil. Getting property '%s'", str.Value)
+			}
 			for Map != nil {
 				value, ok := Map.Map[str.Value]
 				if ok {
@@ -264,10 +276,7 @@ start:
 					vm.Push(value)
 					break
 				}
-				Map, ok = Map.Map["__proto__"].(*object.Map)
-				if !ok {
-					Map = nil
-				}
+				Map = Map.GetPrototype()
 			}
 			if Map == nil {
 				// log.Fatalf("Property %s not found on object of type %s\n", str.Value, obj.Type())
@@ -406,6 +415,8 @@ start:
 		case op.OpCall:
 			argCount := int(stream[frame.ip+1])
 			frame.ip++
+			isConstructorCall := int(stream[frame.ip+1])
+			frame.ip++
 
 			// callee := vm.stack[frame.bp+len(vm.stack)-1-argCount]
 			callee := vm.stack[len(vm.stack)-1-argCount]
@@ -440,17 +451,25 @@ start:
 				closure: fn,
 				bp:      len(vm.stack) - 1 - argCount,
 				// slots:    vm.stack[frame.bp+len(frame.slots)-argCount:], // pass the arguments and the space for local variables
-				ip: 0,
+				ip:                0,
+				isConstructorCall: isConstructorCall == 1,
 			}
 			vm.frames = append(vm.frames, newFrame)
 			frame = &vm.frames[len(vm.frames)-1]
 			stream = frame.closure.Function.Stream
 
-			if fn.This != nil {
+			if isConstructorCall == 1 {
+				this := object.Map{Map: map[string]object.Object{}}
+				proto := fn.Function.GetPrototype()
+				this.Map["__proto__"] = proto.Map["prototype"]
+				vm.stack[len(vm.stack)-1-argCount] = this
+				frame.isConstructorCall = true
+			} else if fn.This != nil {
 				vm.stack[len(vm.stack)-1-argCount] = *fn.This
 			} else {
 				vm.stack[len(vm.stack)-1-argCount] = object.Nil{}
 			}
+
 			continue
 
 		case op.OpNil:
@@ -458,6 +477,9 @@ start:
 
 		case op.OpReturn:
 			returned := vm.Pop()
+			if frame.isConstructorCall {
+				returned = vm.stack[frame.bp] // "this" is always at the base pointer
+			}
 			vm.frames = vm.frames[:len(vm.frames)-1]
 			vm.CloseUpValues(frame.bp)
 			vm.stack = vm.stack[:frame.bp]

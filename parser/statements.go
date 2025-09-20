@@ -53,7 +53,7 @@ type BlockStatement struct {
 	declarations []Declaration
 }
 
-func (b *BlockStatement) Emit(c interfaces.ICompiler) {
+func (b BlockStatement) Emit(c interfaces.ICompiler) {
 	c.EnterScope()
 	for _, statement := range b.declarations {
 		statement.Emit(c)

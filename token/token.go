@@ -28,6 +28,7 @@ const (
 	SEMICOLON TokenType = ";"
 	COLON     TokenType = ":"
 	DOT       TokenType = "."
+	ARROW     TokenType = "=>"
 
 	EQUAL_EQUAL   TokenType = "=="
 	NOT_EQUAL     TokenType = "!="
@@ -62,6 +63,7 @@ const (
 	CONTINUE TokenType = "CONTINUE"
 	ELSE     TokenType = "ELSE"
 	IMPORT   TokenType = "IMPORT"
+	NEW      TokenType = "NEW"
 )
 
 type Token struct {

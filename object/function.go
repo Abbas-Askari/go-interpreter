@@ -1,12 +1,12 @@
 package object
 
 import (
+	"Abbas-Askari/interpreter-v2/colors"
 	"Abbas-Askari/interpreter-v2/op"
 	"fmt"
 )
 
 type Function struct {
-	Value        string
 	Stream       []op.OpCode
 	Arity        int
 	Constants    []Object
@@ -15,10 +15,35 @@ type Function struct {
 	ColumnInfo   []int
 	Name         string
 	ScriptName   string
+	__proto__    *Map
+}
+
+var PrototypeFunction *Map = &Map{
+	Map: map[string]Object{
+		"prototype": Number{Value: -234}, // Just to test that prototype is being used
+	},
+}
+
+func NewFunction(arity int, name string, scriptName string, stream []op.OpCode, lineInfo []int, columnInfo []int, constants []Object) Function {
+	__proto__ := &Map{
+		Map: map[string]Object{
+			"length":    Number{Value: 0},
+			"prototype": Map{Map: map[string]Object{}},
+			"__proto__": PrototypeFunction,
+		},
+	}
+	return Function{
+		Stream:     stream,
+		Arity:      arity,
+		Constants:  []Object{},
+		Name:       name,
+		ScriptName: scriptName,
+		__proto__:  __proto__,
+	}
 }
 
 func (b Function) String() string {
-	return fmt.Sprintf("f<%v>", b.Name)
+	return colors.Colorize(fmt.Sprintf("FUNC<%v>", b.Name), colors.BLUE)
 }
 
 func (b Function) Type() ObjectType {
@@ -46,5 +71,5 @@ func (b Function) GetTruthy() Boolean {
 }
 
 func (b Function) GetPrototype() *Map {
-	return nil
+	return b.__proto__
 }

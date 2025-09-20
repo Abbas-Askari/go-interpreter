@@ -1,10 +1,5 @@
 package object
 
-import (
-	"Abbas-Askari/interpreter-v2/colors"
-	"fmt"
-)
-
 type Closure struct {
 	Function Function
 	UpValues []*UpValue
@@ -17,7 +12,7 @@ func NewClosure(function Function) Closure {
 }
 
 func (b Closure) String() string {
-	return colors.Colorize(fmt.Sprintf("FUNC<%v>", b.Function.Name), colors.BLUE)
+	return b.Function.String()
 }
 
 func (b Closure) Type() ObjectType {
@@ -45,5 +40,5 @@ func (b Closure) GetTruthy() Boolean {
 }
 
 func (b Closure) GetPrototype() *Map {
-	return nil
+	return b.Function.GetPrototype()
 }

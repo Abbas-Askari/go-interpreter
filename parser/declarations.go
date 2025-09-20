@@ -53,7 +53,9 @@ func (d *FunctionDeclaration) Emit(c interfaces.ICompiler) {
 	c.Emit(op.OpClosure, d.name.Line, d.name.Column) // placeholder
 	c.Emit(op.OpCode(0), d.name.Line, d.name.Column)
 	indexIndex := c.GetBytecodeLength() - 1
-	c.Declare(d.name.Literal)
+	if d.name.Literal != "<anonymous>" {
+		c.Declare(d.name.Literal)
+	}
 	c.EnterTarget(d.name.Literal)
 	c.EnterScope()
 	for _, param := range d.parameters {

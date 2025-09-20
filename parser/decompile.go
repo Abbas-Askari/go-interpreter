@@ -23,7 +23,7 @@ func Decompile(function object.Function) {
 		op.OpJumpIfFalse: 1,
 		op.OpJumpIfTrue:  1,
 		op.OpJump:        1,
-		op.OpCall:        1,
+		op.OpCall:        2,
 		op.OpSetProperty: 1,
 		op.OpGetProperty: 1,
 		op.OpArray:       1,
@@ -55,9 +55,13 @@ func Decompile(function object.Function) {
 			continue
 		}
 
-		if _, ok := operandCount[current]; ok {
-			fmt.Printf("%04d %v %d\n", i, current, function.Stream[i+1])
-			i += 2
+		if operandCount, ok := operandCount[current]; ok {
+			fmt.Printf("%04d %v", i, current)
+			for j := 0; j < operandCount; j++ {
+				fmt.Printf(" %d", function.Stream[i+1+j])
+			}
+			fmt.Println()
+			i += operandCount + 1
 			continue
 		}
 

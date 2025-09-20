@@ -27,7 +27,7 @@ func getNet() NativeFunction {
 				headers := object.Map{Map: map[string]object.Object{}}
 				for k, v := range r.Header {
 					if len(v) > 0 {
-						headers.Map[k] = object.String{Value: v[0]}
+						headers.Map[k] = object.NewString(v[0])
 					}
 				}
 				body := NativeFunction{
@@ -36,15 +36,15 @@ func getNet() NativeFunction {
 						_, err := r.Body.Read(buf)
 						if err != nil {
 							log.Println("Error reading body:", err)
-							return object.String{Value: ""}
+							return object.NewString("")
 						}
-						return object.String{Value: string(buf)}
+						return object.NewString(string(buf))
 					}, Arity: 0, Name: "readBody",
 				}
 				req := object.Map{Map: map[string]object.Object{
-					"path":    object.String{Value: r.URL.Path},
+					"path":    object.NewString(r.URL.Path),
 					"headers": headers,
-					"method":  object.String{Value: r.Method},
+					"method":  object.NewString(r.Method),
 					"body":    body,
 				}}
 				// fire event with req and res objects

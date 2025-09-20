@@ -7,6 +7,12 @@ func Equal(left, right Object) Object {
 		return Boolean{Value: false}
 	}
 
+	if right.Type() == CLOSURE {
+		refA := right.(Closure).Function
+		refB := left.(Closure).Function
+		return Boolean{Value: &refA == &refB}
+	}
+
 	return Boolean{Value: right == left}
 }
 

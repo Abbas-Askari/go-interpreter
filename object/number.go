@@ -19,7 +19,7 @@ func (n Number) Add(o Object) Object {
 	case Number:
 		return Number{Value: n.Value + v.Value}
 	case String:
-		return String{Value: n.String() + v.Value}
+		return NewString(n.String() + v.Value)
 	default:
 		return Nil{}
 	}

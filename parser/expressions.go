@@ -129,9 +129,7 @@ func (l *LiteralExpression) Emit(c interfaces.ICompiler) {
 			Value: value,
 		})
 	} else if l.token.Type == token.STRING {
-		index = c.AddConstant(object.String{
-			Value: l.token.Literal,
-		})
+		index = c.AddConstant(object.NewString(l.token.Literal))
 	} else if l.token.Type == token.NIL {
 		index = c.AddConstant(object.Nil{})
 	} else {
@@ -218,7 +216,7 @@ func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
 	} else if prop, ok := l.assignee.(PropertyExpression); ok {
 		prop.object.Emit(c)
 		c.Emit(op.OpSetProperty, l.assignmentToken.Line, l.assignmentToken.Column)
-		index := c.AddConstant(object.String{Value: prop.property})
+		index := c.AddConstant(object.NewString(prop.property))
 		c.Emit(op.OpCode(index), l.assignmentToken.Line, l.assignmentToken.Column)
 	} else if exp, ok := l.assignee.(IndexExpression); ok {
 		exp.object.Emit(c)
@@ -230,9 +228,10 @@ func (l *AssignmentExpression) Emit(c interfaces.ICompiler) {
 }
 
 type CallExpression struct {
-	callee    Expression
-	arguments []Expression
-	paren     token.Token
+	callee            Expression
+	arguments         []Expression
+	paren             token.Token
+	isConstructorCall bool
 }
 
 // func (l *CallExpression) GetType() ExpressionType {
@@ -250,6 +249,11 @@ func (l *CallExpression) Emit(c interfaces.ICompiler) {
 	}
 	c.Emit(op.OpCall, l.paren.Line, l.paren.Column)
 	c.Emit(op.OpCode(len(l.arguments)), l.paren.Line, l.paren.Column)
+	if l.isConstructorCall {
+		c.Emit(op.OpCode(1), l.paren.Line, l.paren.Column)
+	} else {
+		c.Emit(op.OpCode(0), l.paren.Line, l.paren.Column)
+	}
 }
 
 type PropertyExpression struct {
@@ -265,7 +269,7 @@ func (l PropertyExpression) String() string {
 func (l PropertyExpression) Emit(c interfaces.ICompiler) {
 	l.object.Emit(c)
 	c.Emit(op.OpGetProperty, l.dotToken.Line, l.dotToken.Column)
-	index := c.AddConstant(object.String{Value: l.property})
+	index := c.AddConstant(object.NewString(l.property))
 	c.Emit(op.OpCode(index), l.dotToken.Line, l.dotToken.Column)
 }
 

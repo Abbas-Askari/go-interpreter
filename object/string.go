@@ -3,7 +3,25 @@ package object
 import "fmt"
 
 type String struct {
-	Value string
+	Value     string
+	prototype *Map
+}
+
+var PrototypeString *Map = &Map{
+	Map: map[string]Object{
+		"width": Number{Value: -234}, // Just to test that prototype is being used
+	},
+}
+
+func NewString(value string) String {
+	__proto__ := &Map{
+		Map: map[string]Object{
+			"length":    Number{Value: float64(len(value))},
+			"__proto__": PrototypeString,
+		},
+	}
+	s := String{Value: value, prototype: __proto__}
+	return s
 }
 
 func (b String) String() string {
@@ -15,7 +33,7 @@ func (b String) Type() ObjectType {
 }
 
 func (b String) Add(o Object) Object {
-	return String{Value: b.Value + fmt.Sprint(o)}
+	return NewString(b.Value + fmt.Sprint(o))
 }
 
 func (b String) Sub(o Object) Object {
@@ -38,7 +56,7 @@ func (b String) GetElementAtIndex(i int) Object {
 	if i < 0 || i >= len(b.Value) {
 		panic("String index out of range")
 	}
-	return String{Value: string(b.Value[i])}
+	return NewString(string(b.Value[i]))
 }
 
 func (b String) SetElementAtIndex(i int, o Object) {
@@ -52,17 +70,6 @@ func (b String) SetElementAtIndex(i int, o Object) {
 	b.Value = b.Value[:i] + str.Value + b.Value[i+1:]
 }
 
-var PrototypeString *Map = &Map{
-	Map: map[string]Object{
-		"width": Number{Value: -234}, // Just to test that prototype is being used
-	},
-}
-
 func (b String) GetPrototype() *Map {
-	return &Map{
-		Map: map[string]Object{
-			"length":    Number{Value: float64(len(b.Value))},
-			"__proto__": PrototypeString,
-		},
-	}
+	return b.prototype
 }

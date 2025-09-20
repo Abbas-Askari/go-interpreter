@@ -92,7 +92,7 @@ func runFile(filename string, debug bool) *object.Map {
 }
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/exports.test.lox"
+	filename := "/home/abbas/repos/interpreter-v2/inherit.test.lox"
 	runFile(filename, false)
 	fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
 }
