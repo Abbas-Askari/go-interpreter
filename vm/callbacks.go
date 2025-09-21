@@ -11,37 +11,36 @@ type QueueElement struct {
 	args     []object.Object
 }
 
-func (vm *VM) RegisterEvent(closure object.Closure) int {
-	vm.eventQueue = append(vm.eventQueue, closure)
-	return len(vm.eventQueue) - 1
+func (vm *VM) RegisterEvent() {
+	vm.eventMu.Lock()
+	defer vm.eventMu.Unlock()
+	vm.pendingEvents++
 }
 
-func (vm *VM) FireEvent(index int, args ...object.Object) {
+func (vm *VM) DetachEvent() {
+	vm.eventMu.Lock()
+	defer vm.eventMu.Unlock()
+	vm.pendingEvents--
+}
+
+func (vm *VM) FireEvent(function object.Closure, args ...object.Object) {
 	vm.mu.Lock()
 	defer vm.mu.Unlock()
-	if index < 0 || index >= len(vm.eventQueue) {
-		panic("Invalid event index")
-	}
 	vm.callbackQueue = append(vm.callbackQueue, QueueElement{
-		function: vm.eventQueue[index],
+		function: function,
 		args:     args,
 	})
 	vm.cond.Signal()
 }
 
 func (vm *VM) HadPendingEvents() bool {
-	return len(vm.eventQueue) > 0
+	vm.eventMu.Lock()
+	defer vm.eventMu.Unlock()
+	return vm.pendingEvents > 0
 }
 
 func (vm *VM) HasPendingCallbacks() bool {
 	return len(vm.callbackQueue) > 0
-}
-
-func (vm *VM) DetachEvent(index int) {
-	if index < 0 || index >= len(vm.eventQueue) {
-		panic("Invalid event index")
-	}
-	vm.eventQueue = append(vm.eventQueue[:index], vm.eventQueue[index+1:]...)
 }
 
 func (vm *VM) ExecuteNextCallback() {

@@ -55,7 +55,5 @@ func GetNativeFunctions() []object.Object {
 			Arity: 0,
 			Name:  "clock",
 		},
-
-		getNet(),
 	}
 }

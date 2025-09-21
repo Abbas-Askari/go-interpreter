@@ -48,6 +48,7 @@ const (
 	OpGetIndex
 	OpSetIndex
 	OpArray
+	OpMap
 )
 
 func (o OpCode) String() string {
@@ -97,6 +98,7 @@ func (o OpCode) String() string {
 		OpGetIndex:      "GetIndex",
 		OpSetIndex:      "SetIndex",
 		OpArray:         "Array",
+		OpMap:           "Map",
 	}
 	str, ok := opNames[o]
 	if !ok {

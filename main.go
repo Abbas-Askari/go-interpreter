@@ -99,7 +99,7 @@ func runFile(filename string, debug bool) *object.Map {
 }
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/fs.test.lox"
+	filename := "/home/abbas/repos/interpreter-v2/map.test.lox"
 	runFile(filename, false)
 	fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
 }

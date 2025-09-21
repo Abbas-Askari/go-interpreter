@@ -1,6 +1,6 @@
 package object
 
 type Indexable interface {
-	GetElementAtIndex(int) Object
-	SetElementAtIndex(int, Object)
+	GetElementAtIndex(Object) Object
+	SetElementAtIndex(Object, Object)
 }

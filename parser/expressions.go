@@ -152,11 +152,25 @@ func (l *MapExpression) String() string {
 }
 
 func (l *MapExpression) Emit(c interfaces.ICompiler) {
-	c.Emit(op.OpConstant, 0, 0) // line and column are unknown here
-	index := c.AddConstant(object.Map{
-		Map: map[string]object.Object{},
-	})
-	c.Emit(op.OpCode(index), 0, 0)
+	for key, value := range l.pairs {
+		keyStr := ""
+		if iden, ok := key.(*IdentifierExpression); ok {
+			keyStr = iden.token.Literal
+			index := c.AddConstant(object.NewString(keyStr))
+			c.Emit(op.OpConstant, iden.token.Line, iden.token.Column)
+			c.Emit(op.OpCode(index), iden.token.Line, iden.token.Column)
+		} else if lit, ok := key.(*LiteralExpression); ok {
+			keyStr = lit.token.Literal
+			index := c.AddConstant(object.NewString(keyStr))
+			c.Emit(op.OpConstant, lit.token.Line, lit.token.Column)
+			c.Emit(op.OpCode(index), lit.token.Line, lit.token.Column)
+		} else {
+			panic("Map keys must be identifiers or string literals")
+		}
+		value.Emit(c)
+	}
+	c.Emit(op.OpMap, 0, 0)
+	c.Emit(op.OpCode(len(l.pairs)), 0, 0)
 }
 
 type ArrayExpression struct {

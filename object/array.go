@@ -59,18 +59,28 @@ func (b Array) GetTruthy() Boolean {
 	return Boolean{len(b.Value) != 0}
 }
 
-func (b Array) GetElementAtIndex(i int) Object {
-	if i < 0 || i >= len(b.Value) {
-		panic("Array index out of range")
+func (b Array) GetElementAtIndex(i Object) Object {
+	switch idx := i.(type) {
+	case Number:
+		if idx.Value < 0 || idx.Value >= float64(len(b.Value)) {
+			panic("Array index out of range")
+		}
+		return b.Value[int(idx.Value)]
+	default:
+		panic("Array index must be a number")
 	}
-	return b.Value[i]
 }
 
-func (b Array) SetElementAtIndex(i int, o Object) {
-	if i < 0 || i >= len(b.Value) {
-		panic("Array index out of range")
+func (b Array) SetElementAtIndex(i Object, o Object) {
+	switch idx := i.(type) {
+	case Number:
+		if idx.Value < 0 || idx.Value >= float64(len(b.Value)) {
+			panic("Array index out of range")
+		}
+		b.Value[int(idx.Value)] = o
+	default:
+		panic("Array index must be a number")
 	}
-	b.Value[i] = o
 }
 
 var PrototypeArray *Map = &Map{

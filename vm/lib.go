@@ -4,7 +4,10 @@ import "Abbas-Askari/interpreter-v2/object"
 
 func GetLibraryMaps() map[string]*object.Map {
 	return map[string]*object.Map{
-		"fs": getFileSystem(),
+		"fs":   getFileSystem(),
+		"http": getHttp(),
+		"json": getJson(),
+		"os":   getOs(),
 	}
 }
 

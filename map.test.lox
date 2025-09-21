@@ -1,3 +1,59 @@
+import "os";
+import "Arrays";
+import "json";
+
+let m = {
+    "name-asdasd=asdasd": "Alice",
+    "age-asdasd=asdasd": 30,
+    "address-asdasd=asdasd": {
+        street: "123 Main St",
+        city: "Wonderland"
+    },
+    hobbies: ["reading", "chess", "hiking"]
+};
+print m["name-asdasd=asdasd"]; // Alice
+print m;
+
+
+os.exit(0); // Uncomment to test os.exit
+
+
+
+// stringify-tests.js
+
+let tests = [
+  nil,
+  true,
+  false,
+  42,
+  -3.14,
+  "hello",
+  "with spaces",
+  {},                     // empty object
+  [],                     // empty array
+  { name: "Alice", age: 30 },
+  ["red", "green", "blue"],
+  { nested: { enabled: true, tags: ["go", "json"] } },
+  { mixed: [1, "two", { three: 3 }] },
+  { emptyObj: {}, emptyArr: [] },
+  { special: "line\nbreak\tand\"quote" }
+];
+
+let e = (t, i) => {
+  print('--- Test ${i + 1} ---');
+  print "Input:" + t;
+  print "Stringified:" + json.stringify(t);
+  print "Parsed back:" + json.parse(json.stringify(t));
+  print "\n";
+};
+
+tests.forEach(e);
+
+
+
+os.exit(0); // Uncomment to test os.exit
+
+
 func Person(name, money) {
     let t = {};
     name = name;

@@ -1,5 +1,6 @@
 import "strings";
 import "Arrays";
+import "http";
 
 func Handler(path, handlerFunction) {
     this.path = path;
@@ -45,7 +46,7 @@ func Server() {
     };
 
     this.listen = (port) => {
-        listen(this.multiplexer, port);
+        http.listen(this.multiplexer, port);
     };
 }
 

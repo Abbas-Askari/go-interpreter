@@ -33,7 +33,8 @@ type VM struct {
 	openUpValues []*object.UpValue
 	Globals      []object.Object
 
-	eventQueue    []object.Closure
+	pendingEvents int
+	eventMu       sync.Mutex // Added for eventQueue thread safety
 	callbackQueue []QueueElement
 	cond          *sync.Cond
 	mu            sync.Mutex
@@ -288,13 +289,9 @@ start:
 			obj := vm.Pop()
 			indexable, ok := obj.(object.Indexable)
 			if !ok {
-				log.Fatalf("Object of type %s is not indexable\n", obj.Type())
+				vm.runtimeError("Object of type %s is not indexable\n", obj.Type())
 			}
-			numIndex, ok := index.(object.Number)
-			if !ok {
-				log.Fatal("Index must be a number. Got: ", index.Type())
-			}
-			vm.Push(indexable.GetElementAtIndex(int(numIndex.Value)))
+			vm.Push(indexable.GetElementAtIndex(index))
 
 		case op.OpSetIndex:
 			index := vm.Pop()
@@ -302,13 +299,9 @@ start:
 			value := vm.Peek()
 			indexable, ok := obj.(object.Indexable)
 			if !ok {
-				log.Fatalf("Object of type %s is not indexable\n", obj.Type())
+				vm.runtimeError("Object of type %s is not indexable\n", obj.Type())
 			}
-			numIndex, ok := index.(object.Number)
-			if !ok {
-				log.Fatal("Index must be a number. Got: ", index.Type())
-			}
-			indexable.SetElementAtIndex(int(numIndex.Value), value)
+			indexable.SetElementAtIndex(index, value)
 
 		case op.OpArray:
 			length := int(stream[frame.ip+1])
@@ -319,6 +312,20 @@ start:
 			copy(detached, elements)
 			arr := object.NewArray(detached)
 			vm.Push(arr)
+
+		case op.OpMap:
+			length := int(stream[frame.ip+1])
+			frame.ip++
+			m := object.Map{map[string]object.Object{}}
+			for i := 0; i < length; i++ {
+				value, key := vm.Pop(), vm.Pop()
+				iden, ok := key.(object.String)
+				if !ok {
+					vm.runtimeError("Map keys must be strings. Got: %s", key.Type())
+				}
+				m.Map[iden.Value] = value
+			}
+			vm.Push(m)
 
 		case op.OpJump:
 			jumpLength := int(stream[frame.ip+1]) - 1 // -1 because we do a frame.ip++ at the end of the loop

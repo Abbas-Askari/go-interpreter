@@ -268,7 +268,7 @@ func (p *Parser) LiteralExpression(isConstructorCall bool) Expression {
 			if ident, ok := exp.(*IdentifierExpression); ok {
 				parameters = append(parameters, *ident)
 			} else {
-				panic("Expected parameter name for arrow function")
+				panic("Expected parameter name for arrow function, got " + fmt.Sprintf("%T", exp))
 			}
 			for p.consumeIfExists(token.COMMA) {
 				param, ok := p.Expression().(*IdentifierExpression)

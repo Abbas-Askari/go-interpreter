@@ -6,7 +6,7 @@
 - [x] Add seperate compiler from the parser
 - add string support
 
-  - in lexer to define string literals
+  - in lexer to define string literals#
   - in objects and allow operations on strings
 
 ### Add variables
@@ -81,3 +81,15 @@
   - write `psql` driver?
 - [ ] add `setInterval` and `setTimeout`
 - [ ] runtime (2–3 funcs: print, exit, stacktrace)
+
+### Speed Test
+
+- Api forwarding with caching and cache dumping
+  - Tests Http (serving, requesting), Json parsing, and Map writes.
+  - Cache dumping tests FS and async I/O
+- Dump Cache to PG?
+- Cache x 100
+- Dump the Cache x 100 to FS
+- File streaming
+  - Tests FS + Heep serving
+    All steps except 1 will have the serve answering constant calls to /please-say POST calls which will reply with the bdoy of the request to measure RPS and concurrency.
