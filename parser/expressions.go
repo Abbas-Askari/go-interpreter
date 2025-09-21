@@ -61,6 +61,7 @@ func (b *BinaryExpression) Emit(c interfaces.ICompiler) {
 		token.LESS_EQUAL:    op.OpLessEqual,
 		token.AND:           op.OpAnd,
 		token.OR:            op.OpOr,
+		token.RANDOM_EQUAL:  op.OpRandomEqual,
 	}
 	c.Emit(mapping[b.operand.Type], b.operand.Line, b.operand.Column)
 }

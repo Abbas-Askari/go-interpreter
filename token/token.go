@@ -31,6 +31,7 @@ const (
 	ARROW     TokenType = "=>"
 
 	EQUAL_EQUAL   TokenType = "=="
+	RANDOM_EQUAL  TokenType = "==="
 	NOT_EQUAL     TokenType = "!="
 	LESS_EQUAL    TokenType = "<="
 	GREATER_EQUAL TokenType = ">="

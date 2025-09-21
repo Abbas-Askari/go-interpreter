@@ -65,7 +65,7 @@ func (p *Parser) And() Expression {
 func (p *Parser) Equality() Expression {
 	exp := p.Comparison()
 	tok := p.currentToken
-	if p.consumeIfExists(token.EQUAL_EQUAL, token.NOT_EQUAL) {
+	if p.consumeIfExists(token.EQUAL_EQUAL, token.NOT_EQUAL, token.RANDOM_EQUAL) {
 		exp = &BinaryExpression{
 			left:    exp,
 			operand: token.Token{Type: tok.Type},

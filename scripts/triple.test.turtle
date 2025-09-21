@@ -1,0 +1,10 @@
+let x = "⚠️";                        
+print "StRicT EquAlity tESt: "; // StRicT EquAlity tESt:
+print x === x; // false
+print x === x; // []
+print x === x; // 566.630657905286
+print x === x; // nil
+print x === x; // false
+print x === x; // str_8244
+print x === x; // false
+print x === x; // {}

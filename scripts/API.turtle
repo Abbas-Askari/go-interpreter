@@ -1,0 +1,48 @@
+import "fs";
+import "http";
+import "json";
+
+func CachedApi() {
+    this.hits = 0;
+    this.misses = 0;
+    this.data = {};
+}
+
+CachedApi.prototype.dump = () => {
+    let time = now();
+    let filename = "logs/" + time + "-log.json";
+    let f = fs.open(filename, "w");
+    let content = json.stringify(this.data);
+    f.write(content);
+    f.close();
+};
+
+CachedApi.prototype.get = (id, callback) => {
+    let res = this.data[id];
+    if res == nil {
+        this.misses = this.misses + 1;
+        let thisss = this; // workaround for closure capture issue
+        http.request(
+            "GET",
+            "http://localhost:4000/?id=" + id,
+            { "Content-Type": "application/json" },
+            "",
+            (data, err) => {
+                if err != nil {
+                    print "HTTP request error: " + err;
+                    return;
+                }
+                let parsed = json.parse(data.body);
+                let person = parsed.data[0];
+                thisss.data[id] = person; // Reason for the workaround is that, unlike JS ... 
+                // 'this' has the same semantics in arrow functions as in normal functions 
+                callback(person);
+            }
+        );
+        return nil;
+    }
+    this.hits = this.hits + 1;
+    callback(res);
+};
+
+exports.CachedApi = CachedApi;

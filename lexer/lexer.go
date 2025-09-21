@@ -16,6 +16,7 @@ func Tokenize(input string) []token.Token {
 		typ     token.TokenType
 	}{
 		{"=>", token.ARROW},
+		{"===", token.RANDOM_EQUAL},
 		{"==", token.EQUAL_EQUAL},
 		{"!=", token.NOT_EQUAL},
 		{"<=", token.LESS_EQUAL},

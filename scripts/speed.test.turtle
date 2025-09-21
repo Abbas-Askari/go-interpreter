@@ -7,3 +7,5 @@ for let i = 0; i < 99999999; i = i + 1 {
     }
 }
 print "took " + (now() - t) + " s";
+
+// This test means nothing.

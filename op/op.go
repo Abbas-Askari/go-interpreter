@@ -49,6 +49,7 @@ const (
 	OpSetIndex
 	OpArray
 	OpMap
+	OpRandomEqual
 )
 
 func (o OpCode) String() string {
@@ -99,6 +100,7 @@ func (o OpCode) String() string {
 		OpSetIndex:      "SetIndex",
 		OpArray:         "Array",
 		OpMap:           "Map",
+		OpRandomEqual:   "RandomEqual",
 	}
 	str, ok := opNames[o]
 	if !ok {

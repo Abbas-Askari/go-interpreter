@@ -358,6 +358,10 @@ start:
 		case op.OpEqual:
 			right, left := vm.Pop(), vm.Pop()
 			vm.Push(object.Equal(right, left))
+		case op.OpRandomEqual:
+			vm.Pop()
+			vm.Pop()
+			vm.Push(object.RandomEqual())
 		case op.OpNotEqual:
 			right, left := vm.Pop(), vm.Pop()
 			vm.Push(object.NotEqual(right, left))

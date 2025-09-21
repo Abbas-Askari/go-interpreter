@@ -1,7 +1,26 @@
 package object
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+	"strconv"
+)
 
+func RandomEqual() Object {
+	randomNum := Number{Value: rand.Float64() * 1000}
+	randomStr := String{Value: "str_" + strconv.Itoa(rand.Intn(10000))}
+
+	t := []Object{
+		Boolean{Value: rand.Intn(2) == 1},
+		randomNum,
+		randomStr,
+		Nil{},
+		Map{Map: map[string]Object{}},
+		NewArray([]Object{}),
+	}
+
+	return t[rand.Intn(len(t))]
+}
 func Equal(left, right Object) Object {
 	if right.Type() != left.Type() {
 		return Boolean{Value: false}

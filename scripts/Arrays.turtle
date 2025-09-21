@@ -1,8 +1,7 @@
-func push(x) {
+// Array extensions for turtle written in turtle!
+Array.push = (x) => {
     return this + [x];
-}
-
-Array.push = push;
+};
 
 Array.forEach = (f) => {
     for let i = 0; i < this.length; i = i + 1 {
