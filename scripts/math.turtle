@@ -13,7 +13,5 @@ func min(a, b) {
     return b;
 }
 
-print "Hello from math";
-
 exports.abs = abs;
 exports.min = min;

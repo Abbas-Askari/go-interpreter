@@ -12,7 +12,7 @@ func CachedApi() {
 }
 
 CachedApi.prototype.dump = () => {
-    let time = clock();
+    let time = now();
     let filename = "logs/" + time + "-log.json";
     let f = fs.open(filename, "w");
     let content = json.stringify(this.data);
@@ -28,7 +28,7 @@ CachedApi.prototype.get = (id, callback) => {
         http.request(
             "GET",
             "http://localhost:4000/?id=" + id,
-            {"Content-Type": "application/json"},
+            { "Content-Type": "application/json" },
             "",
             (data, err) => {
                 if err != nil {
@@ -37,7 +37,7 @@ CachedApi.prototype.get = (id, callback) => {
                 }
                 let parsed = json.parse(data.body);
                 let person = parsed.data[0];
-                thisss.data[id] = person;
+                thisss.data[id] = person; // Reason for the workaround is that, unlike JS, 'this' has the same semantics in arrow functions as in normal functions 
                 callback(person);
             }
         );
@@ -54,9 +54,10 @@ server.get("/stream", (req, res) => {
     let f = fs.open("image.jpg", "r");
     res.writeHeader("Content-Type", "image/jpeg");
     res.writeHeader("Transfer-Encoding", "chunked");
-    
-    for let i = 0; i < f.length() / 65536; i = i + 1 {
-        let result = f.read(math.min(65536, f.length() - i * 65536));
+
+    let CHUNK_SIZE = 65536; // 64k, Idk, just landed on this
+    for let i = 0; i < f.length() / CHUNK_SIZE; i = i + 1 {
+        let result = f.read(math.min(CHUNK_SIZE, f.length() - i * CHUNK_SIZE));
         let chunk = result[0];
         let err = result[1];
         if err != nil {
@@ -68,11 +69,11 @@ server.get("/stream", (req, res) => {
     res.end();
 });
 
-server.get('start-logs', (req, res) =>{
+server.get('start-logs', (req, res) => {
     async.setInterval(api.dump, 50);
 });
 
-server.get("/forward", (req, res) => {
+server.post("/forward", (req, res) => {
     let bodyString = req.body();
     let body = json.parse(bodyString);
     let id = body.a.d.c.d.e;
@@ -96,4 +97,5 @@ server.get('/stats', (req, res) => {
 });
 
 server.listen(2000);
+let x;
 print "Server started at http://localhost:2000";

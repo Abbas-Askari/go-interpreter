@@ -2,14 +2,14 @@ import "strings";
 import "Arrays";
 import "http";
 
-func Handler(path, handlerFunction) {
+func Handler(path, handlerFunction, method) {
     this.path = path;
     this.handlerFunction = handlerFunction;
+    this.method = method;
 }
 
 Handler.prototype.match = (x) => {
-    let res = x.endsWith(this.path);  
-    return res;
+    return x.path.endsWith(this.path) && x.method == this.method;
 };
 
 Handler.prototype.handle = (req, res) => {
@@ -20,24 +20,15 @@ func Server() {
     this.handlers = [];
 
     this.post = (path, handlerFunction) => {
-        this.handlers = this.handlers.push(new Handler(path, handlerFunction));
+        this.handlers = this.handlers.push(new Handler(path, handlerFunction, "POST"));
     };
     this.get = (path, handler) => {
-        this.handlers = this.handlers.push(new Handler(path, handler));
-    };
-
-    this.printHandlers = () => {
-        print "Handlers: " + this.handlers;
+        this.handlers = this.handlers.push(new Handler(path, handler, "GET"));
     };
 
     this.multiplexer = (req, res) => {
-        for let i = 0; i < this.handlers.length; i = i + 1 {
-            let h = this.handlers[i];
-            if (h.match(req.path)) {
-                h.handle(req, res);
-                return;
-            }
-        }
+        let h = this.handlers.find((h, _) => h.match(req));
+        if h return h.handle(req, res);
         res.writeStatus(404);
         res.write("No handler for " + req.path + "\n");
         res.end();

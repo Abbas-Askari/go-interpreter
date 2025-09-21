@@ -9,3 +9,12 @@ Array.forEach = (f) => {
         f(this[i], i);
     }
 };
+
+Array.find = (f) => {
+    for let i = 0; i < this.length; i = i + 1 {
+        if (f(this[i], i)) {
+            return this[i];
+        }
+    }
+    return nil;
+};

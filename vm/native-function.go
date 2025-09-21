@@ -53,7 +53,7 @@ func GetNativeFunctions() []object.Object {
 				return x
 			},
 			Arity: 0,
-			Name:  "clock",
+			Name:  "now",
 		},
 	}
 }
