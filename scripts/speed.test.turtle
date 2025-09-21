@@ -1,0 +1,9 @@
+let t = clock();
+print t;
+for let i = 0; i < 99999999; i = i + 1 {
+    if i % 10000000 == 0 {
+        print i;
+        print clock() - t;
+    }
+}
+print "took " + (clock() - t) + " s";

@@ -26,7 +26,6 @@ func getHttp() *object.Map {
 			}
 			vm.RegisterEvent()
 			helloHandler := func(w http.ResponseWriter, r *http.Request) {
-				fmt.Println("Received request:", r.Method, r.URL.Path)
 				done := make(chan struct{})
 
 				headers := object.Map{Map: map[string]object.Object{}}

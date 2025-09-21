@@ -9,14 +9,16 @@ import (
 	"Abbas-Askari/interpreter-v2/vm"
 	"fmt"
 	"os"
+	"path/filepath"
 )
+
+// TODO: Clean this ugly main file
 
 func runFile(filename string, debug bool) *object.Map {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		panic(fmt.Errorf("File not found!\nUsage: run [filepath]"))
 	}
-	// fmt.Println(string(fileContent))
 
 	tokens := lexer.Tokenize(string(fileContent))
 
@@ -43,8 +45,23 @@ func runFile(filename string, debug bool) *object.Map {
 				imp.Exports = module
 				continue
 			}
-			modulePath := "./" + imp.Module.Literal + ".lox"
-			if _, err := os.Stat(modulePath); os.IsNotExist(err) {
+			dir := filepath.Dir(filename)
+			entries, err := os.ReadDir(dir)
+			if err != nil {
+				panic(err)
+			}
+			target := imp.Module.Literal + ".turtle"
+			modulePath := ""
+			for _, e := range entries {
+				if !e.IsDir() && e.Name() == target {
+					modulePath = filepath.Join(dir, e.Name())
+					break
+				}
+			}
+			if err != nil {
+				panic(err)
+			}
+			if modulePath == "" {
 				panic(fmt.Sprintf("Module not found: %s", modulePath))
 			}
 			imp.Exports = runFile(modulePath, debug)
@@ -55,15 +72,13 @@ func runFile(filename string, debug bool) *object.Map {
 
 	globals := vm.GetNativeFunctions()
 
+	// TODO: Fix this hacky way of adding prototypes and Map
 	compiler.DefineConstant("exports", object.Map{})
 	compiler.DefineConstant("Array", object.Map{})
 	compiler.DefineConstant("String", object.Map{})
 	for _, fun := range globals {
 		compiler.DefineConstant(fun.(vm.NativeFunction).Name, fun)
 	}
-	// put object.Map{} in globals as "exports" as index 0
-	// so user can do exports["key"] = "value"
-	// and access it from other files by import
 	globals = append([]object.Object{*object.PrototypeString}, globals...)
 	globals = append([]object.Object{*object.PrototypeArray}, globals...)
 	globals = append([]object.Object{object.Map{Map: map[string]object.Object{}}}, globals...)
@@ -99,7 +114,7 @@ func runFile(filename string, debug bool) *object.Map {
 }
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/map.test.lox"
+	filename := "/home/abbas/repos/interpreter-v2/scripts/main.test.turtle"
 	runFile(filename, false)
 	fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
 }

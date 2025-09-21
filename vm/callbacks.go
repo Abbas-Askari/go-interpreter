@@ -33,14 +33,10 @@ func (vm *VM) FireEvent(function object.Closure, args ...object.Object) {
 	vm.cond.Signal()
 }
 
-func (vm *VM) HadPendingEvents() bool {
+func (vm *VM) HasPendingEvents() bool {
 	vm.eventMu.Lock()
 	defer vm.eventMu.Unlock()
 	return vm.pendingEvents > 0
-}
-
-func (vm *VM) HasPendingCallbacks() bool {
-	return len(vm.callbackQueue) > 0
 }
 
 func (vm *VM) ExecuteNextCallback() {

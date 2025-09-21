@@ -76,10 +76,10 @@
 - [ ] add more `fs` functions
   - MVP (8 funcs): readFile, writeFile, appendFile, stat, exists, readDir, mkdir, remove
   - Streaming (4–5 funcs): open, close, read, write, seek
-- [ ] add `fetch` under http
+- [x] add `fetch` under http
 - [ ] add `TCP` support
   - write `psql` driver?
-- [ ] add `setInterval` and `setTimeout`
+- [x] add `setInterval` and `setTimeout`
 - [ ] runtime (2–3 funcs: print, exit, stacktrace)
 
 ### Speed Test

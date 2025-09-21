@@ -1,0 +1,17 @@
+func substring(start, end) {
+    let result = "";
+    for let i = start; i < end; i = i + 1 {
+        result = result + this[i];
+    }
+    return result;
+}
+
+func endsWith(suffix) {
+    let start = this.length - suffix.length;
+    if start < 0 return false;
+    let sub = this.substring(start, this.length);
+    return sub == suffix;
+}
+
+String.endsWith = endsWith;
+String.substring = substring;

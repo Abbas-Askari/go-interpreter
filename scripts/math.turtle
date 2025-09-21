@@ -1,0 +1,19 @@
+func abs(x) {
+    if x < 0 {
+        return -x;
+    }
+
+    return x;
+}
+
+func min(a, b) {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+print "Hello from math";
+
+exports.abs = abs;
+exports.min = min;

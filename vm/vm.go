@@ -289,9 +289,13 @@ start:
 			obj := vm.Pop()
 			indexable, ok := obj.(object.Indexable)
 			if !ok {
-				vm.runtimeError("Object of type %s is not indexable\n", obj.Type())
+				vm.runtimeError("Cannot read property '%s' of type %s\n", index, obj.Type())
 			}
-			vm.Push(indexable.GetElementAtIndex(index))
+			value, err := indexable.GetElementAtIndex(index)
+			if err != nil {
+				vm.runtimeError("Error getting index: %s", err.Error())
+			}
+			vm.Push(value)
 
 		case op.OpSetIndex:
 			index := vm.Pop()
@@ -299,9 +303,12 @@ start:
 			value := vm.Peek()
 			indexable, ok := obj.(object.Indexable)
 			if !ok {
-				vm.runtimeError("Object of type %s is not indexable\n", obj.Type())
+				vm.runtimeError("Cannot read property '%s' of type %s\n", index, obj.Type())
 			}
-			indexable.SetElementAtIndex(index, value)
+			err := indexable.SetElementAtIndex(index, value)
+			if err != nil {
+				vm.runtimeError("Error setting index: %s", err.Error())
+			}
 
 		case op.OpArray:
 			length := int(stream[frame.ip+1])
@@ -508,7 +515,7 @@ start:
 		fmt.Println("Ending globals: ", globals)
 	}
 	vm.frames = vm.frames[:len(vm.frames)-1]
-	if vm.HadPendingEvents() {
+	if vm.HasPendingEvents() {
 		vm.ExecuteNextCallback()
 		frame = &vm.frames[0]
 		stream = frame.closure.Function.Stream

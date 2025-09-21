@@ -1,0 +1,51 @@
+import "strings";
+import "Arrays";
+import "http";
+
+func Handler(path, handlerFunction) {
+    this.path = path;
+    this.handlerFunction = handlerFunction;
+}
+
+Handler.prototype.match = (x) => {
+    let res = x.endsWith(this.path);  
+    return res;
+};
+
+Handler.prototype.handle = (req, res) => {
+    this.handlerFunction(req, res);
+};
+
+func Server() {
+    this.handlers = [];
+
+    this.post = (path, handlerFunction) => {
+        this.handlers = this.handlers.push(new Handler(path, handlerFunction));
+    };
+    this.get = (path, handler) => {
+        this.handlers = this.handlers.push(new Handler(path, handler));
+    };
+
+    this.printHandlers = () => {
+        print "Handlers: " + this.handlers;
+    };
+
+    this.multiplexer = (req, res) => {
+        for let i = 0; i < this.handlers.length; i = i + 1 {
+            let h = this.handlers[i];
+            if (h.match(req.path)) {
+                h.handle(req, res);
+                return;
+            }
+        }
+        res.writeStatus(404);
+        res.write("No handler for " + req.path + "\n");
+        res.end();
+    };
+
+    this.listen = (port) => {
+        http.listen(this.multiplexer, port);
+    };
+}
+
+exports.Server = Server;

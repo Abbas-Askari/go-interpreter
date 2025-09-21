@@ -23,26 +23,19 @@ func (b Map) String() string {
 	return str
 }
 
-func (b Map) GetElementAtIndex(i Object) Object {
-	switch idx := i.(type) {
-	case String:
-		val, ok := b.Map[idx.Value]
-		if !ok {
-			return Nil{}
-		}
-		return val
-	default:
-		panic("Map index must be a string")
+func (b Map) GetElementAtIndex(i Object) (Object, error) {
+	index := i.String()
+	val, ok := b.Map[index]
+	if !ok {
+		return Nil{}, nil
 	}
+	return val, nil
 }
 
-func (b Map) SetElementAtIndex(i Object, o Object) {
-	switch idx := i.(type) {
-	case String:
-		b.Map[idx.Value] = o
-	default:
-		panic("Map index must be a string")
-	}
+func (b Map) SetElementAtIndex(i Object, o Object) error {
+	index := i.String()
+	b.Map[index] = o
+	return nil
 }
 
 func (b Map) Type() ObjectType {

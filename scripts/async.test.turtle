@@ -1,0 +1,20 @@
+import "async";
+
+
+async.setTimeout(
+    () => {
+        print "Tick--------";
+        async.setTimeout(() => {
+            print "Tick--------";
+        }, 100);
+    },
+    500
+);
+
+
+async.setInterval(
+    () => {
+        print "Tock";
+    },
+    200
+);

@@ -1,0 +1,99 @@
+import "fs";
+import "net";
+import "math";
+import "json";
+import "http";
+import "async"; 
+
+func CachedApi() {
+    this.hits = 0;
+    this.misses = 0;
+    this.data = {};
+}
+
+CachedApi.prototype.dump = () => {
+    let time = clock();
+    let filename = "logs/" + time + "-log.json";
+    let f = fs.open(filename, "w");
+    let content = json.stringify(this.data);
+    f.write(content);
+    f.close();
+};
+
+CachedApi.prototype.get = (id, callback) => {
+    let res = this.data[id];
+    if res == nil {
+        this.misses = this.misses + 1;
+        let thisss = this; // workaround for closure capture issue
+        http.request(
+            "GET",
+            "http://localhost:4000/?id=" + id,
+            {"Content-Type": "application/json"},
+            "",
+            (data, err) => {
+                if err != nil {
+                    print "HTTP request error: " + err;
+                    return;
+                }
+                let parsed = json.parse(data.body);
+                let person = parsed.data[0];
+                thisss.data[id] = person;
+                callback(person);
+            }
+        );
+        return nil;
+    }
+    this.hits = this.hits + 1;
+    callback(res);
+};
+
+let api = new CachedApi();
+
+let server = new net.Server();
+server.get("/stream", (req, res) => {
+    let f = fs.open("image.jpg", "r");
+    res.writeHeader("Content-Type", "image/jpeg");
+    res.writeHeader("Transfer-Encoding", "chunked");
+    
+    for let i = 0; i < f.length() / 65536; i = i + 1 {
+        let result = f.read(math.min(65536, f.length() - i * 65536));
+        let chunk = result[0];
+        let err = result[1];
+        if err != nil {
+            print "Error reading file chunk: " + err;
+            break;
+        }
+        res.write(chunk);
+    }
+    res.end();
+});
+
+server.get('start-logs', (req, res) =>{
+    async.setInterval(api.dump, 50);
+});
+
+server.get("/forward", (req, res) => {
+    let bodyString = req.body();
+    let body = json.parse(bodyString);
+    let id = body.a.d.c.d.e;
+
+    api.get(id, (data) => {
+        res.writeHeader("Content-Type", "application/json");
+        res.writeStatus(200);
+        res.write(json.stringify(data));
+        res.end();
+    });
+});
+
+server.get('/stats', (req, res) => {
+    res.writeHeader("Content-Type", "application/json");
+    res.writeStatus(200);
+    res.write(json.stringify({
+        hits: api.hits,
+        misses: api.misses
+    }));
+    res.end();
+});
+
+server.listen(2000);
+print "Server started at http://localhost:2000";

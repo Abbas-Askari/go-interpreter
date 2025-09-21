@@ -52,22 +52,34 @@ func (b String) GetTruthy() Boolean {
 	return Boolean{len(b.Value) != 0}
 }
 
-func (b String) GetElementAtIndex(i int) Object {
-	if i < 0 || i >= len(b.Value) {
-		panic("String index out of range")
+func (b String) GetElementAtIndex(i Object) (Object, error) {
+	switch idx := i.(type) {
+	case Number:
+		if idx.Value < 0 || idx.Value >= float64(len(b.Value)) {
+			return nil, fmt.Errorf("String index out of range")
+		}
+		return NewString(string(b.Value[int(idx.Value)])), nil
+	default:
+		return nil, fmt.Errorf("String index must be a number")
 	}
-	return NewString(string(b.Value[i]))
 }
 
-func (b String) SetElementAtIndex(i int, o Object) {
-	if i < 0 || i >= len(b.Value) {
-		panic("String index out of range")
+func (b String) SetElementAtIndex(i Object, o Object) error {
+	switch idx := i.(type) {
+	case Number:
+		if idx.Value < 0 || idx.Value >= float64(len(b.Value)) {
+			return fmt.Errorf("String index out of range")
+		}
+		// Set the element at the specified index
+		str, ok := o.(String)
+		if !ok || len(str.Value) != 1 {
+			return fmt.Errorf("Can only assign single character strings to string indices")
+		}
+		b.Value = b.Value[:int(idx.Value)] + str.Value + b.Value[int(idx.Value)+1:]
+	default:
+		return fmt.Errorf("String index must be a number")
 	}
-	str, ok := o.(String)
-	if !ok || len(str.Value) != 1 {
-		panic("Can only assign single character strings to string indices")
-	}
-	b.Value = b.Value[:i] + str.Value + b.Value[i+1:]
+	return nil
 }
 
 func (b String) GetPrototype() *Map {
