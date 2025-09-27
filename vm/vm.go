@@ -157,6 +157,10 @@ start:
 		case op.OpConstant:
 			index := stream[frame.ip+1]
 			frame.ip++
+			if int(index) >= len(frame.closure.Function.Constants) {
+
+				vm.runtimeError("Constant index out of range. Got %d, but there are only %d constants\n", index, len(frame.closure.Function.Constants))
+			}
 			constant := frame.closure.Function.Constants[index]
 			vm.Push(constant)
 
@@ -440,7 +444,7 @@ start:
 				nfn, ok := callee.(NativeFunction)
 				if ok {
 					if argCount != nfn.Arity {
-						log.Fatalf("Wrong number of arguments for native function. Expected %d, got %d\n", nfn.Arity, argCount)
+						vm.runtimeError("Wrong number of arguments for %s. Expected %d, got %d\n", nfn.Name, nfn.Arity, argCount)
 					}
 					// Call the native function
 					args := vm.stack[len(vm.stack)-argCount:]
@@ -459,7 +463,7 @@ start:
 			}
 
 			if argCount != fn.Function.Arity {
-				vm.runtimeError("Wrong number of arguments. Expected %d, got %d\n", fn.Function.Arity, argCount)
+				vm.runtimeError("Wrong number of arguments for %s. Expected %d, got %d\n", fn.Function.Name, fn.Function.Arity, argCount)
 			}
 
 			newFrame := CallFrame{

@@ -9,6 +9,7 @@ func GetLibraryMaps() map[string]*object.Map {
 		"json":  getJson(),
 		"os":    getOs(),
 		"async": getAsync(),
+		"tcp":   getTCP(),
 	}
 }
 

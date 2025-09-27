@@ -114,7 +114,7 @@ func runFile(filename string, debug bool) *object.Map {
 }
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/scripts/triple.test.turtle"
+	filename := "/home/abbas/repos/interpreter-v2/scripts/tcp.test.turtle"
 	runFile(filename, false)
 	fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
 }

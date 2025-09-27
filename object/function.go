@@ -35,7 +35,7 @@ func NewFunction(arity int, name string, scriptName string, stream []op.OpCode, 
 	return Function{
 		Stream:     stream,
 		Arity:      arity,
-		Constants:  []Object{},
+		Constants:  constants,
 		Name:       name,
 		ScriptName: scriptName,
 		LineInfo:   lineInfo,
