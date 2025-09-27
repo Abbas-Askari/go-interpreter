@@ -18,7 +18,7 @@ Array.find = (f) => {
     return nil;
 };
 
-funcp filter(f) {
+func filter(f) {
     let result = [];
     for let i = 0; i < this.length; i = i + 1 {
         if (f(this[i], i)) {

@@ -2,7 +2,10 @@ package vm
 
 import (
 	"Abbas-Askari/interpreter-v2/object"
+	"bufio"
 	"fmt"
+	"os"
+	"strings"
 	"time"
 )
 
@@ -54,6 +57,20 @@ func GetNativeFunctions() []object.Object {
 			},
 			Arity: 0,
 			Name:  "now",
+		},
+		NativeFunction{
+			Function: func(vm *VM, args ...object.Object) object.Object {
+				reader := bufio.NewReader(os.Stdin)
+				input, err := reader.ReadString('\n')
+				if err != nil {
+					vm.runtimeError("Error reading input: %v", err)
+					return object.NewString("")
+				}
+				input = strings.TrimRight(input, "\r\n")
+				return object.NewString(input)
+			},
+			Arity: 0,
+			Name:  "readLine",
 		},
 	}
 }

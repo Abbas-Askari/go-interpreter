@@ -2,55 +2,11 @@ import "tcp";
 import "Arrays";
 import "async";
 
-let connections = [];
-
-func addSocket(socket) {
-    connections = connections.push({ socket: socket, id: connections.length });
-    return connections.length - 1;
+for {
+    print "Enter a message to broadcast (or 'exit' to quit): ";
+    let message = readLine();
+    if message == "exit" {
+        break;
+    }
+    print "Sending: " + message;
 }
-
-func removeSocket(id) {
-    connections = connections.filter((conn, i) => conn.id != id);
-}
-
-func boradCast(message, by) {
-    print "Broadcasting message by " + by + " to " + connections.length + " connections";
-    connections.forEach((conn, _) => {
-        if conn.id == by return; // Don't send to the sender
-
-        if conn.socket.isOpen {
-            print "Sending to " + conn.id;
-            conn.socket.write(message);
-            print "Sent to " + conn.id;
-        }
-    });
-}
-
-tcp.server((socket) => {
-    print "New connection established";
-    let id = addSocket(socket);
-
-    socket.onData = (chunk) => {
-        print "Received: " + chunk;
-        // Broadcast to all open connections
-        boradCast("User " + id + ": " + chunk, id);
-    };
-    // socket.onEnd = () => {
-    //     print "Connection ended";
-    //     // Remove closed connection
-    //     removeSocket(socket.id);
-    //     boradCast("user" + socket.id + " has disconnected", id);
-    // };
-    socket.onError = (err) => {
-        print "Error: " + err;
-    };
-
-    async.setTimeout(() => {
-        if (socket.isOpen) {
-            socket.write("Welcome to the broadcast server! Your id is " + id + "\n");
-            boradCast("user" + id + " has connected", id);
-        }
-    }, 3000);
-
-}, 3000);
-print "Broadcast server listening on port 3000";
