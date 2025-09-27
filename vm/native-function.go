@@ -70,6 +70,27 @@ func GetNativeFunctions() []object.Object {
 				return object.NewString(input)
 			},
 			Arity: 0,
+			Name:  "readLineSync",
+		},
+		NativeFunction{
+			Function: func(vm *VM, args ...object.Object) object.Object {
+				vm.assertArgumentToType(args[0], object.CLOSURE, "readLine", 0)
+				closure := args[0].(object.Closure)
+				vm.RegisterEvent()
+				go func() {
+					reader := bufio.NewReader(os.Stdin)
+					input, err := reader.ReadString('\n')
+					if err != nil {
+						vm.FireEvent(closure, object.Nil{}, object.NewString(fmt.Sprintf("Error reading input: %v", err)))
+						vm.DetachEvent()
+					}
+					input = strings.TrimRight(input, "\r\n")
+					vm.FireEvent(closure, object.NewString(input), object.Nil{})
+					vm.DetachEvent()
+				}()
+				return object.Nil{}
+			},
+			Arity: 1,
 			Name:  "readLine",
 		},
 	}

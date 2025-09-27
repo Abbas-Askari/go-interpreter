@@ -4,9 +4,11 @@ import "async";
 
 let connections = [];
 
+let id = 0;
 func addSocket(socket) {
-    connections = connections.push({ socket: socket, id: connections.length });
-    return connections.length - 1;
+    connections = connections.push({ socket: socket, id: id });
+    id = id + 1;
+    return id - 1;
 }
 
 func removeSocket(id) {
@@ -35,12 +37,12 @@ tcp.server((socket) => {
         // Broadcast to all open connections
         boradCast("User " + id + ": " + chunk, id);
     };
-    // socket.onEnd = () => {
-    //     print "Connection ended";
-    //     // Remove closed connection
-    //     removeSocket(socket.id);
-    //     boradCast("user" + socket.id + " has disconnected", id);
-    // };
+    socket.onEnd = () => {
+        print "Connection ended";
+        // Remove closed connection
+        removeSocket(id);
+        boradCast("user" + socket.id + " has disconnected", id);
+    };
     socket.onError = (err) => {
         print "Error: " + err;
     };

@@ -400,9 +400,9 @@ start:
 			vm.Push(object.Boolean{Value: false})
 
 		case op.OpBreak:
-			log.Fatal("Break statement not in loop")
+			vm.runtimeError("Break statement not in loop")
 		case op.OpContinue:
-			log.Fatal("Continue statement not in loop")
+			vm.runtimeError("Continue statement not in loop")
 
 		case op.OpClosure:
 			index := stream[frame.ip+1]

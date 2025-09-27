@@ -2,11 +2,55 @@ import "tcp";
 import "Arrays";
 import "async";
 
-for {
-    print "Enter a message to broadcast (or 'exit' to quit): ";
-    let message = readLine();
-    if message == "exit" {
-        break;
+let console = {
+    log: (msg) => {
+        print msg;
     }
-    print "Sending: " + message;
+};
+
+func promptLoop(socket) {
+    print "Enter a message to broadcast (or 'exit' to quit): ";
+    readLine((message, err) => {
+        if err != nil {
+            print "Error reading input: " + err;
+            return;
+        }
+        if message == "exit" {
+            print socket;
+            socket.close();
+            return;
+        }
+        socket.write(message + "\n");
+        promptLoop(socket);
+    });
 }
+
+// async.setInterval(() => {
+//     console.log("Client is running...");
+// }, 3000);
+
+tcp.connect("127.0.0.1:3000", (socket, error) => {
+    if error != nil {
+        console.log("Connection error: " + error);
+        return;
+    }
+
+    console.log("Connected to server");
+    socket.write("Hello from client!\n");
+    socket.onData = (data) => {
+        console.log("📩 Server says:" + data);
+    };
+    socket.onEnd = () => {
+        console.log("❌ Disconne cted from server");
+    };
+    socket.onError = (err) => {
+        print "Got error Error:" + err;
+    };
+    promptLoop(socket);
+    async.setTimeout(() => {
+        socket.write("How are you, server?\n");
+    }, 2000);
+});
+
+
+print "Client started";

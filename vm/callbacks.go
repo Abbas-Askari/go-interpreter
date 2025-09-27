@@ -36,7 +36,9 @@ func (vm *VM) FireEvent(function object.Closure, args ...object.Object) {
 func (vm *VM) HasPendingEvents() bool {
 	vm.eventMu.Lock()
 	defer vm.eventMu.Unlock()
-	return vm.pendingEvents > 0
+	vm.mu.Lock()
+	defer vm.mu.Unlock()
+	return vm.pendingEvents > 0 || len(vm.callbackQueue) > 0
 }
 
 func (vm *VM) ExecuteNextCallback() {
