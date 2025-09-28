@@ -1,0 +1,297 @@
+import "tcp";
+import "Arrays";
+import "async";
+import "strings";
+import "ascii";
+
+let POSTGRES_HOST = "localhost";
+let POSTGRES_USER = "myuser";
+let POSTGRES_PASSWORD = "mypass";
+let POSTGRES_DB = "mydb";
+let POSTGRES_PORT = 5432;
+
+
+func readInt32(data) {
+    return data[0] * 16777216 + data[1] * 65536 + data[2] * 256 + data[3];
+}
+
+
+func parseErrorFields(body) {
+    let fields = {};
+    let i = 0;
+    for i < body.length {
+        let code = ascii.fromCharCode(body[i]);
+        i = i + 1;
+        if(code == 0) break;
+    let start = i;
+    for i < body.length {
+        if  body[i] == 0 {
+            break;
+        }
+    i = i + 1;
+}
+let val = body.slice(start, i).map((c, _) => ascii.fromCharCode(c)).join("");
+i = i + 1;
+fields[code] = val;
+}
+return fields;
+}
+
+
+func connect(hostname, port, callback) {
+    tcp.connect(hostname + ":" + port, (socket, error) => {
+        if error != nil {
+            callback(nil, error);
+            return;
+        }
+
+        let length = 4 + 4 + 5 + POSTGRES_USER.length + 1 + 9 + POSTGRES_DB.length + 1 + 1;
+
+        socket.write(length);
+        socket.write(196608);
+        socket.write("user\0");
+        socket.write(POSTGRES_USER + "\0");
+        socket.write("database\0");
+        socket.write(POSTGRES_DB + "\0");
+        socket.write("\0");
+
+        let pg = {};
+        let started = false;
+        let rowDescription = nil;
+        let rows = [];
+        let currentQueryCallback = nil;
+        let queuedQueries = [];
+        pg.socket = socket;
+
+        func flushError(fields) {
+            if currentQueryCallback != nil {
+                currentQueryCallback(nil, { message: "Error from server", fields: fields });
+                currentQueryCallback = nil;
+                rows = [];
+                rowDescription = nil;
+            }
+        }
+
+        func processNextQuery() {
+            if currentQueryCallback != nil {
+                return;
+            }
+            if queuedQueries.length == 0 {
+                return;
+            }
+            let queued = queuedQueries[0];
+            let queryLength = 4 + queued.query.length + 1;
+            currentQueryCallback = queued.callback;
+            socket.write('Q');
+            socket.write(queryLength);
+            socket.write(queued.query + "\0");
+            queuedQueries = queuedQueries.slice(1, queuedQueries.length);
+        }
+
+        pg.query = (query, queryCallback) => {
+            queuedQueries = queuedQueries.push({ query: query, callback: queryCallback });
+            processNextQuery();
+        };
+
+        func handleMessage(type, body, len) {
+            if type == "R" {
+                let authType = readInt32(body);
+                if authType == 0 {
+                    // print "AuthenticationOk";
+                    return;
+                }
+                if authType == 3 {
+                    // print "AuthenticationCleartextPassword";
+                    let len = 4 + POSTGRES_PASSWORD.length + 1;
+                    socket.write('p');
+                    socket.write(len);
+                    socket.write(POSTGRES_PASSWORD + "\0");
+                    // print "Sent password";
+                    return;
+                }
+                print "Unknown authentication type: " + authType;
+                socket.close();
+                return;
+            }
+
+            if type == "E" {
+                let fields = parseErrorFields(body);
+                flushError(fields);
+                return;
+            }
+
+            if type == "S" {
+                let fields = parseErrorFields(body);
+                // print "Notice from server: " + fields;
+                return;
+            }
+
+            if type == "K" {
+                let processId = readInt32(body.slice(0, 4));
+                let secretKey = readInt32(body.slice(4, 8));
+                // print "BackendKeyData: pid=" + processId + " secretKey=" + secretKey;
+                return;
+            }
+
+            if type == "Z" {
+                let status = ascii.fromCharCode(body[0]);
+                if status == "I" {
+                    // print "ReadyForQuery: idle";
+                } else if status == "T" {
+                    // print "ReadyForQuery: in a transaction block";
+                } else if status == "E" {
+                    print "ReadyForQuery: in a failed transaction block";
+                } else {
+                    print "ReadyForQuery: unknown status " + status;
+                }
+                if socket.onReady != nil {
+                    socket.onReady();
+                }
+
+                if !started {
+                    started = true;
+                    callback(pg, nil);
+                } else {
+                    processNextQuery();
+                }
+                return;
+            }
+
+            if type == "T" {
+                // RowDescription
+                let fieldCount = readInt32([0, 0] + body.slice(0, 2));
+                rowDescription = [];
+                let offset = 2;
+                for let i = 0; i < fieldCount; i = i + 1 {
+                    let start = offset;
+                    for body[offset] != 0 {
+                        offset = offset + 1;
+                    }
+                    let name = body.slice(start, offset).map((c, _) => ascii.fromCharCode(c)).join("");
+                    rowDescription = rowDescription.push(name);
+                    offset = offset + 19;
+                }
+                return;
+            }
+
+            if type == "D" {
+                // DataRow
+                let fieldCount = readInt32([0, 0] + body.slice(0, 2));
+                // print "DataRow field count: " + fieldCount;
+                let offset = 2;
+                let row = {};
+                for let i = 0; i < fieldCount; i = i + 1 {
+                    let fieldLen = readInt32(body.slice(offset, offset + 4));
+                    offset = offset + 4;
+                    let value = nil;
+                    if fieldLen != -1 {
+                        value = body.slice(offset, offset + fieldLen).map((c, _) => ascii.fromCharCode(c)).join("");
+                        offset = offset + fieldLen;
+                    } else {
+                        value = nil;
+                    }
+                    if rowDescription != nil {
+                        row[rowDescription[i]] = value;
+                    } else {
+                        row["field" + i] = value;
+                    }
+                }
+                rows = rows.push(row);
+                // print "DataRow: " + row;
+                return;
+            }
+
+            if type == "C" {
+                if currentQueryCallback != nil {
+                    currentQueryCallback(rows, nil);
+                    currentQueryCallback = nil;
+                    rows = [];
+                    rowDescription = nil;
+                }
+                return;
+            }
+            
+            
+            print "Unknown message type: " + type + " with length: " + len;
+
+        }
+
+        let stream = [];
+        let type;
+        let msgLength;
+        let msgBody;
+        socket.onData = (data) => {
+            stream = stream + data;
+            func processStream() {
+                if stream.length < 5 {
+                    return;
+                }
+                if type == nil {
+                    type = ascii.fromCharCode(stream[0]);
+                    stream = stream.slice(1, stream.length);
+                }
+                if type != nil && msgLength == nil && stream.length >= 4 {
+                    msgLength = readInt32(stream.slice(0, 4));
+                    stream = stream.slice(4, stream.length);
+                }
+                if type != nil && msgLength != nil && stream.length >= msgLength - 4 {
+                    msgBody = stream.slice(0, msgLength - 4);
+                    stream = stream.slice(msgLength - 4, stream.length);
+                    handleMessage(type, msgBody, msgLength);
+                    type = nil;
+                    msgLength = nil;
+                    msgBody = nil;
+                }
+                processStream();
+            }
+            processStream();
+        };
+
+        socket.onEnd = () => {
+            print "Connection closed by server";
+            socket.isOpen = false;
+            if socket.onClose != nil {
+                socket.onClose();
+            }
+        };
+
+        socket.onError = (err) => {
+            print("Socket error: " + err);
+            socket.isOpen = false;
+            socket.close();
+        };
+    });
+}
+
+connect(POSTGRES_HOST, POSTGRES_PORT, (pg, error) => {
+    if error != nil {
+        print("Error connecting to PostgreSQL: " + error);
+        return;
+    }
+    print("Connected to PostgreSQL");
+    pg.query("SELECT u.name, c.title, e.enrolled_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
+        if error != nil {
+            print("Error executing query: " + error);
+            return;
+        }
+        print("Query result: " + result);
+    });
+    pg.query("SELECT u.name, c.title, e.enrol;led_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
+        if error != nil {
+            print("Error executing queasdasdry: " + error);
+            return;
+        }
+        print("Query result: " + result);
+    });
+    pg.query("SELECT u.name, c.title, e.enrolled_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
+        if error != nil {
+            print("Error executing query: " + error);
+            return;
+        }
+        print("Query result: " + result);
+    });
+
+    print "OKIE";
+});
+
+print "DONE";

@@ -29,3 +29,32 @@ func filter(f) {
 };
 
 Array.filter = filter;
+
+Array.slice = (start, end) => {
+    if end == nil {
+        end = this.length;
+    }
+    let result = [];
+    for let i = start; i < end; i = i + 1 {
+        result = result.push(this[i]);
+    }
+    return result;
+};
+
+Array.map = (f) => {
+    let result = [];
+    for let i = 0; i < this.length; i = i + 1 {
+        result = result.push(f(this[i], i));
+    }
+    return result;
+};
+
+Array.join = (sep) => {
+    if this.length == 0 return "";
+    let result = "";
+    for let i = 0; i < this.length - 1; i = i + 1 {
+        result = result + this[i] + sep;
+    }
+    result = result + this[this.length - 1];
+    return result;
+};

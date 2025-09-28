@@ -3,6 +3,8 @@ package vm
 import (
 	"Abbas-Askari/interpreter-v2/object"
 	"Abbas-Askari/interpreter-v2/op"
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"net"
@@ -54,18 +56,21 @@ func NewSocketObject(conn net.Conn, vm *VM) object.Map {
 
 	socket.Map["write"] = NativeFunction{
 		Function: func(vm *VM, args ...object.Object) object.Object {
-			vm.assertArgumentToType(args[0], object.STRING, "write", 0)
-			data := args[0].(object.String)
-			if socket.Map["isOpen"] == (object.Boolean{false}) {
-				vm.runtimeError("Cannot write to a closed socket")
-				return object.Nil{}
+			buf := bytes.NewBuffer([]byte{})
+			data, ok := args[0].(object.String)
+			if ok {
+				buf.WriteString(data.Value)
+			} else if data, ok := args[0].(object.Number); ok {
+				binary.Write(buf, binary.BigEndian, int32(data.Value))
+			} else {
+				vm.assertArgumentToType(args[0], object.STRING, "write", 0)
 			}
-			go func() {
-				_, err := conn.Write([]byte(data.Value))
-				if err != nil {
-					vm.FireEvent(socket.Map["onError"].(object.Closure), object.NewString(err.Error()))
-				}
-			}()
+			// go func() {
+			_, err := conn.Write(buf.Bytes())
+			if err != nil {
+				vm.FireEvent(socket.Map["onError"].(object.Closure), object.NewString(err.Error()))
+			}
+			// }()
 			return object.Nil{}
 		},
 		Arity: 1,
@@ -91,8 +96,12 @@ func NewSocketObject(conn net.Conn, vm *VM) object.Map {
 				}
 				data := make([]byte, n)
 				copy(data, buffer[:n])
-				vm.FireEvent(socket.Map["onData"].(object.Closure), object.NewString(string(data)))
-
+				arr := make([]object.Object, n)
+				for i := 0; i < n; i++ {
+					arr[i] = object.Number{float64(data[i])}
+				}
+				obj := object.NewArray(arr)
+				vm.FireEvent(socket.Map["onData"].(object.Closure), obj)
 			}
 		}
 	}

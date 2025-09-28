@@ -43,7 +43,7 @@ func (p *Parser) Or() Expression {
 		exp = &BinaryExpression{
 			left:    exp,
 			operand: token.Token{Type: tok.Type},
-			right:   p.And(),
+			right:   p.Or(),
 		}
 	}
 	return exp
@@ -56,7 +56,7 @@ func (p *Parser) And() Expression {
 		exp = &BinaryExpression{
 			left:    exp,
 			operand: token.Token{Type: tok.Type},
-			right:   p.Equality(),
+			right:   p.And(),
 		}
 	}
 	return exp

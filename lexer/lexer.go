@@ -193,6 +193,10 @@ func Tokenize(input string) []token.Token {
 							c = '"'
 							i++
 							column++
+						} else if nextChar == '0' {
+							c = 0
+							i++
+							column++
 						} else {
 							str = str + string(c)
 							i++
