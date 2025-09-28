@@ -1,0 +1,24 @@
+import "os";
+import "async";
+import "net";
+
+let cmd = os.exec(["ffmpeg", "-i", "/home/abbas/Downloads/test.mp4", "output.mp3"]);
+
+async.setInterval(() => {
+    print "Is running: " + cmd.isRunning;
+}, 1000);
+
+
+cmd.onData = (data) => {
+    print("Output: " + data);
+};
+cmd.onError = (data) => {
+    cmd.write("y\r\n");
+    print("Error: " + data);
+};
+cmd.onEnd = () => {
+    print("Command finished");
+    print("Is running: " + cmd.isRunning);
+};
+
+print("Is running: " + cmd.isRunning);

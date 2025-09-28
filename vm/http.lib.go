@@ -44,11 +44,27 @@ func getHttp() *object.Map {
 						return object.NewString(string(bodyBytes))
 					}, Arity: 0, Name: "readBody",
 				}
+				bytes := NativeFunction{
+					Function: func(vm *VM, args ...object.Object) object.Object {
+						bodyBytes, err := io.ReadAll(r.Body)
+						if err != nil {
+							vm.runtimeError("Error reading body: %v ", err)
+							return object.NewArray([]object.Object{})
+						}
+						arr := make([]object.Object, len(bodyBytes))
+						for i := 0; i < len(bodyBytes); i++ {
+							arr[i] = object.Number{float64(bodyBytes[i])}
+						}
+						obj := object.NewArray(arr)
+						return obj
+					}, Arity: 0, Name: "readBody",
+				}
 				req := object.Map{Map: map[string]object.Object{
 					"path":    object.NewString(r.URL.Path),
 					"headers": headers,
 					"method":  object.NewString(r.Method),
 					"body":    body,
+					"bytes":   bytes,
 				}}
 				// fire event with req and res objects
 

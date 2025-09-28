@@ -101,6 +101,24 @@ func getFileSystem() *object.Map {
 							return object.Nil{}
 						},
 					},
+					"writeBytes": NativeFunction{
+						Name:  "writeBytes",
+						Arity: 1,
+						Function: func(vm *VM, args ...object.Object) object.Object {
+							vm.assertArgumentToType(args[0], object.ARRAY, "write", 0)
+							elements := args[0].(object.Array).Value
+							data := make([]byte, len(elements))
+							for i, elem := range elements {
+								vm.assertArgumentToType(elem, object.NUMBER, "writeBytes", 0)
+								data[i] = byte(int(elem.(object.Number).Value))
+							}
+							_, err := file.Write(data)
+							if err != nil {
+								vm.runtimeError("Error writing to file: %s", err.Error())
+							}
+							return object.Nil{}
+						},
+					},
 					"close": NativeFunction{
 						Name:  "close",
 						Arity: 0,
@@ -114,6 +132,51 @@ func getFileSystem() *object.Map {
 					},
 				},
 			}
+		},
+	}
+
+	fs.Map["exists"] = NativeFunction{
+		Name:  "exists",
+		Arity: 1,
+		Function: func(vm *VM, args ...object.Object) object.Object {
+			vm.assertArgumentToType(args[0], object.STRING, "exists", 0)
+			path := args[0].(object.String).Value
+			_, err := os.Stat(path)
+			if err == nil {
+				return object.Boolean{Value: true}
+			}
+			if os.IsNotExist(err) {
+				return object.Boolean{Value: false}
+			} else if err != nil {
+				vm.runtimeError("Error checking if file exists: %s", err.Error())
+			}
+			return object.Boolean{Value: false}
+		},
+	}
+
+	fs.Map["remove"] = NativeFunction{
+		Name:  "remove",
+		Arity: 1,
+		Function: func(vm *VM, args ...object.Object) object.Object {
+			vm.assertArgumentToType(args[0], object.STRING, "remove", 0)
+			path := args[0].(object.String).Value
+			err := os.Remove(path)
+			if err != nil {
+				vm.runtimeError("Error removing file: %s", err.Error())
+			}
+			return object.Nil{}
+		},
+	}
+
+	fs.Map["getwd"] = NativeFunction{
+		Name:  "getwd",
+		Arity: 0,
+		Function: func(vm *VM, args ...object.Object) object.Object {
+			dir, err := os.Getwd()
+			if err != nil {
+				vm.runtimeError("Error getting current working directory: %s", err.Error())
+			}
+			return object.NewString(dir)
 		},
 	}
 

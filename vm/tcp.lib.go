@@ -10,9 +10,9 @@ import (
 	"net"
 )
 
-func getMessagePrinterClosure(message string) object.Closure {
+func getMessagePrinterClosure(message string, arity int) object.Closure {
 	return object.NewClosure(
-		object.NewFunction(0, "printMessage", "internal", []op.OpCode{
+		object.NewFunction(arity, "printMessage", "internal", []op.OpCode{
 			op.OpConstant, 0,
 			op.OpPrint,
 			op.OpNil,
@@ -27,9 +27,9 @@ func NewSocketObject(conn net.Conn, vm *VM) object.Map {
 
 	socket := object.Map{Map: map[string]object.Object{}}
 	socket.Map["isOpen"] = object.Boolean{true}
-	socket.Map["onData"] = getMessagePrinterClosure("Warning: onData was called without an implementation")
-	socket.Map["onError"] = getMessagePrinterClosure("Warning: onError was called without an implementation")
-	socket.Map["onEnd"] = getMessagePrinterClosure("Warning: onEnd was called without an implementation")
+	socket.Map["onData"] = getMessagePrinterClosure("Warning: onData was called without an implementation", 1)
+	socket.Map["onError"] = getMessagePrinterClosure("Warning: onError was called without an implementation", 1)
+	socket.Map["onEnd"] = getMessagePrinterClosure("Warning: onEnd was called without an implementation", 0)
 
 	done := make(chan struct{})
 

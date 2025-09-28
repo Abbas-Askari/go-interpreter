@@ -3,7 +3,6 @@ package vm
 import (
 	"Abbas-Askari/interpreter-v2/object"
 	"Abbas-Askari/interpreter-v2/op"
-	"log"
 )
 
 type QueueElement struct {
@@ -57,7 +56,7 @@ func (vm *VM) ExecuteNextCallback() {
 	argCount := len(callback.args)
 
 	if argCount != fn.Function.Arity {
-		log.Fatalf("Expected %d arguments but got %d\n", fn.Function.Arity, argCount)
+		vm.runtimeError("Expected %d arguments but got %d for function '%s'\n", fn.Function.Arity, argCount, fn.Function.Name)
 	}
 
 	// caller frame

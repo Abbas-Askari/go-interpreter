@@ -7,6 +7,10 @@ type Number struct {
 }
 
 func (n Number) String() string {
+	// if v is int, print as int
+	if n.Value == float64(int(n.Value)) {
+		return fmt.Sprintf("%d", int(n.Value))
+	}
 	return fmt.Sprintf("%v", n.Value)
 }
 

@@ -4,12 +4,65 @@ import "json";
 import "async";
 import "API";
 import "fs";
+import "os";
+import "pg";
 
 let api = new API.CachedApi();
 
+let db = nil;
+
+let POSTGRES_HOST = "localhost";
+let POSTGRES_USER = "myuser";
+let POSTGRES_PASSWORD = "mypass";
+let POSTGRES_DB = "mydb";
+let POSTGRES_PORT = 5432;
+
+
+func seedDB() {
+    if db == nil {
+        print "DB is not connected yet";
+        return;
+    }
+    let f = fs.open("data.json", "r");
+    let content = f.read(f.length());
+    let err = content[1];
+    if err != nil {
+        print "Error reading data.json: " + err;
+        return;
+    }
+    let data = json.parse(content[0]);
+
+    for let i = 0; i < data.length; i = i + 1 {
+        let person = data[i];
+        // print person;
+        let values = [person.id, person.firstname, person.lastname, person.email, person.phone, person.birthday, person.gender];
+        db.query("INSERT INTO people (id, firstname, lastname, email, phone, birthday, gender) VALUES (" +
+            values.map((v, _) => "'" + v + "'").join(", ")
+            + ")", (data, err) => {
+                if err != nil {
+                    print "Error inserting person: " + err;
+                }
+            });
+    }
+    print "Database seeded with " + data.length + " records";
+}
+
+let connection = pg.connect(POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, (pg, err) => {
+    if err != nil {
+        print "Error connecting to Postgres: " + err;
+        os.exit(1);
+        return;
+    }
+    db = pg;
+    seedDB();
+    print "Connected to Postgres";
+});
+
+
+
 let server = new net.Server();
 server.get("/stream", (req, res) => {
-    let f = fs.open("image.jpg", "r");
+    let f = fs.open("output.mp3", "r");
     res.writeHeader("Content-Type", "image/jpeg");
     res.writeHeader("Transfer-Encoding", "chunked");
 
@@ -44,6 +97,19 @@ server.post("/forward", (req, res) => {
     });
 });
 
+server.post("/db", (req, res) => {
+    let bodyString = req.body();
+    let body = json.parse(bodyString);
+    let id = body.a.d.c.d.e;
+
+    api.getFromDB(id, db, (data) => {
+        res.writeHeader("Content-Type", "application/json");
+        res.writeStatus(200);
+        res.write(json.stringify(data));
+        res.end();
+    });
+});
+
 server.get('/stats', (req, res) => {
     res.writeHeader("Content-Type", "application/json");
     res.writeStatus(200);
@@ -54,5 +120,65 @@ server.get('/stats', (req, res) => {
     res.end();
 });
 
+if !fs.exists("tmp") {
+    os.exit(1);
+} else {
+    print "Temp directory exists";
+}
+
+server.post("/convert-to-audio", (req, res) => {
+    let bytes = req.bytes();
+    let filename = fs.getwd() + "/tmp/" + now() + "-video.mp4";
+    let f = fs.open(filename, "w");
+    f.writeBytes(bytes);
+    f.close();
+    print "Saved uploaded video to " + filename;
+
+    let outputFile = fs.getwd() + "/tmp/" + now() + "-audio.mp3";
+
+    let job = os.exec(["ffmpeg", "-i", filename, outputFile]);
+
+    let done = false;
+
+    job.onEnd = () => {
+        if done {
+            return;
+        }
+        fs.remove(filename);
+        if !fs.exists(outputFile) {
+            print "FFmpeg did not produce an output file";
+            res.writeHeader("Content-Type", "application/json");
+            res.writeStatus(500);
+            res.write(json.stringify({ error: "Error processing video file" }));
+            res.end();
+            fs.remove(filename);
+            return;
+        }
+        let audioFile = fs.open(outputFile, "r");
+
+        res.writeHeader("Content-Type", "audio/mp3");
+        res.writeHeader("Content-Length", audioFile.length());
+
+        let CHUNK_SIZE = 65536; // 64k, Idk, just landed on this
+        for let i = 0; i < audioFile.length() / CHUNK_SIZE; i = i + 1 {
+            let result = audioFile.read(math.min(CHUNK_SIZE, audioFile.length() - i * CHUNK_SIZE));
+            let chunk = result[0];
+            let err = result[1];
+            if err != nil {
+            print "Error reading file chunk: " + err;
+                break;
+            }
+            res.write(chunk);
+        }
+        res.end();
+        audioFile.close();
+        fs.remove(outputFile);
+    };
+
+    job.onError = (data) => {
+        print "t";
+        // ffmpeg sometimes writes errors to stderr but still produces a valid output file
+    };
+});
 server.listen(2000);
 print "Server started at http://localhost:2000";

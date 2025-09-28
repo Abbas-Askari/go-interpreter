@@ -4,13 +4,6 @@ import "async";
 import "strings";
 import "ascii";
 
-let POSTGRES_HOST = "localhost";
-let POSTGRES_USER = "myuser";
-let POSTGRES_PASSWORD = "mypass";
-let POSTGRES_DB = "mydb";
-let POSTGRES_PORT = 5432;
-
-
 func readInt32(data) {
     return data[0] * 16777216 + data[1] * 65536 + data[2] * 256 + data[3];
 }
@@ -38,19 +31,19 @@ return fields;
 }
 
 
-func connect(hostname, port, callback) {
+func connect(hostname, port, user, POSTGRES_PASSWORD, POSTGRES_DB, callback) {
     tcp.connect(hostname + ":" + port, (socket, error) => {
         if error != nil {
             callback(nil, error);
             return;
         }
 
-        let length = 4 + 4 + 5 + POSTGRES_USER.length + 1 + 9 + POSTGRES_DB.length + 1 + 1;
+        let length = 4 + 4 + 5 + user.length + 1 + 9 + POSTGRES_DB.length + 1 + 1;
 
         socket.write(length);
         socket.write(196608);
         socket.write("user\0");
-        socket.write(POSTGRES_USER + "\0");
+        socket.write(user + "\0");
         socket.write("database\0");
         socket.write(POSTGRES_DB + "\0");
         socket.write("\0");
@@ -90,7 +83,7 @@ func connect(hostname, port, callback) {
 
         pg.query = (query, queryCallback) => {
             queuedQueries = queuedQueries.push({ query: query, callback: queryCallback });
-            processNextQuery();
+            async.setTimeout(processNextQuery, 0);
         };
 
         func handleMessage(type, body, len) {
@@ -152,7 +145,7 @@ func connect(hostname, port, callback) {
                     started = true;
                     callback(pg, nil);
                 } else {
-                    processNextQuery();
+                    async.setTimeout(processNextQuery, 0);
                 }
                 return;
             }
@@ -263,35 +256,35 @@ func connect(hostname, port, callback) {
     });
 }
 
-connect(POSTGRES_HOST, POSTGRES_PORT, (pg, error) => {
-    if error != nil {
-        print("Error connecting to PostgreSQL: " + error);
-        return;
-    }
-    print("Connected to PostgreSQL");
-    pg.query("SELECT u.name, c.title, e.enrolled_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
-        if error != nil {
-            print("Error executing query: " + error);
-            return;
-        }
-        print("Query result: " + result);
-    });
-    pg.query("SELECT u.name, c.title, e.enrol;led_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
-        if error != nil {
-            print("Error executing queasdasdry: " + error);
-            return;
-        }
-        print("Query result: " + result);
-    });
-    pg.query("SELECT u.name, c.title, e.enrolled_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
-        if error != nil {
-            print("Error executing query: " + error);
-            return;
-        }
-        print("Query result: " + result);
-    });
+// connect(POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, (pg, error) => {
+//     if error != nil {
+//         print("Error connecting to PostgreSQL: " + error);
+//         return;
+//     }
+//     print("Connected to PostgreSQL");
+//     pg.query("SELECT u.name, c.title, e.enrolled_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
+//         if error != nil {
+//             print("Error executing query: " + error);
+//             return;
+//         }
+//         print("Query result: " + result);
+//     });
+//     pg.query("SELECT u.name, c.title, e.enrol;led_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
+//         if error != nil {
+//             print("Error executing queasdasdry: " + error);
+//             return;
+//         }
+//         print("Query result: " + result);
+//     });
+//     pg.query("SELECT u.name, c.title, e.enrolled_on FROM enrollments e JOIN users u ON e.user_id = u.id JOIN courses c ON e.course_id = c.id;", (result, error) => {
+//         if error != nil {
+//             print("Error executing query: " + error);
+//             return;
+//         }
+//         print("Query result: " + result);
+//     });
 
-    print "OKIE";
-});
+//     print "OKIE";
+// });
 
-print "DONE";
+exports.connect = connect;

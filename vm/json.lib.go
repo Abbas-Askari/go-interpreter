@@ -17,11 +17,11 @@ func convertToObject(v interface{}) object.Object {
 	case string:
 		return object.String{Value: val}
 	case []interface{}:
-		arr := object.NewArray([]object.Object{})
+		arr := []object.Object{}
 		for _, elem := range val {
-			arr.Value = append(arr.Value, convertToObject(elem))
+			arr = append(arr, convertToObject(elem))
 		}
-		return arr
+		return object.NewArray(arr)
 	case map[string]interface{}:
 		obj := object.Map{Map: map[string]object.Object{}}
 		for k, vv := range val {
