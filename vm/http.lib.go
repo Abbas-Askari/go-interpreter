@@ -51,12 +51,7 @@ func getHttp() *object.Map {
 							vm.runtimeError("Error reading body: %v ", err)
 							return object.NewArray([]object.Object{})
 						}
-						arr := make([]object.Object, len(bodyBytes))
-						for i := 0; i < len(bodyBytes); i++ {
-							arr[i] = object.Number{float64(bodyBytes[i])}
-						}
-						obj := object.NewArray(arr)
-						return obj
+						return object.NewBuffer(bodyBytes)
 					}, Arity: 0, Name: "readBody",
 				}
 				req := object.Map{Map: map[string]object.Object{
@@ -104,6 +99,17 @@ func getHttp() *object.Map {
 						return object.Nil{}
 					}, Arity: 1, Name: "write",
 				}
+				writeBytes := NativeFunction{
+					Function: func(vm *VM, args ...object.Object) object.Object {
+						vm.assertArgumentToType(args[0], object.BUFFER, "writeBytes", 0)
+						body := args[0].(object.Buffer)
+						_, err := w.Write(body.Value)
+						if err != nil {
+							log.Println("Error writing body:", err)
+						}
+						return object.Nil{}
+					}, Arity: 1, Name: "writeBytes",
+				}
 				end := NativeFunction{
 					Function: func(vm *VM, args ...object.Object) object.Object {
 						close(done)
@@ -117,6 +123,7 @@ func getHttp() *object.Map {
 					"writeStatus": writeStatus,
 					"writeHeader": writeHeader,
 					"write":       writeBody,
+					"writeBytes":  writeBytes,
 					"end":         end,
 					"flush":       flush,
 				}}

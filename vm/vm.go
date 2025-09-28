@@ -166,7 +166,11 @@ start:
 
 		case op.OpAdd:
 			right, left := vm.Pop(), vm.Pop()
-			vm.Push(left.Add(right))
+			res := left.Add(right)
+			if res == nil {
+				vm.runtimeError("Cannot add %s and %s\n", left.Type(), right.Type())
+			}
+			vm.Push(res)
 
 		case op.OpSub:
 			right, left := vm.Pop(), vm.Pop()

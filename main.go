@@ -76,9 +76,11 @@ func runFile(filename string, debug bool) *object.Map {
 	compiler.DefineConstant("exports", object.Map{})
 	compiler.DefineConstant("Array", object.Map{})
 	compiler.DefineConstant("String", object.Map{})
+	compiler.DefineConstant("Buffer", object.Map{})
 	for _, fun := range globals {
 		compiler.DefineConstant(fun.(vm.NativeFunction).Name, fun)
 	}
+	globals = append([]object.Object{*object.PrototypeBuffer}, globals...)
 	globals = append([]object.Object{*object.PrototypeString}, globals...)
 	globals = append([]object.Object{*object.PrototypeArray}, globals...)
 	globals = append([]object.Object{object.Map{Map: map[string]object.Object{}}}, globals...)

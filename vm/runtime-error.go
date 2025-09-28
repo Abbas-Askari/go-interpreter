@@ -12,8 +12,7 @@ func (vm *VM) runtimeError(format string, args ...interface{}) {
 		frame := vm.frames[len(vm.frames)-1]
 		ip := frame.ip
 		line := frame.closure.Function.LineInfo[ip-1]
-		column := frame.closure.Function.ColumnInfo[ip-1]
-		errMessage = fmt.Sprintf("%s\t[line %3d:%3d of %s] at %s\n", errMessage, line, column, frame.closure.Function.ScriptName, frame.closure.Function.Name)
+		errMessage = fmt.Sprintf("%s\t[line %3d of %s:%d] at %s\n", errMessage, line, frame.closure.Function.ScriptName, line, frame.closure.Function.Name)
 		vm.frames = vm.frames[:len(vm.frames)-1]
 	}
 	fmt.Println(colors.Colorize("Runtime Error:", colors.RED))

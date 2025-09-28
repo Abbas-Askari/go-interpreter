@@ -12,6 +12,7 @@ const (
 	UPVALUE  = "UPVALUE"
 	MAP      = "MAP"
 	ARRAY    = "ARRAY"
+	BUFFER   = "BUFFER"
 )
 
 type Object interface {

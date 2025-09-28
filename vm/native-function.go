@@ -59,6 +59,51 @@ func GetNativeFunctions() []object.Object {
 			Name:  "now",
 		},
 		NativeFunction{
+			Name:  "BufferFrom",
+			Arity: 1,
+			Function: func(vm *VM, args ...object.Object) object.Object {
+				switch val := args[0].(type) {
+				case object.String:
+					return object.NewBuffer([]byte(val.Value))
+				case object.Array:
+					bytes := make([]byte, len(val.Value))
+					for i, v := range val.Value {
+						switch num := v.(type) {
+						case object.Number:
+							bytes[i] = byte(num.Value)
+						default:
+							vm.runtimeError("Array elements must be numbers to convert to Buffer")
+							return object.Nil{}
+						}
+					}
+					return object.NewBuffer(bytes)
+				default:
+					vm.runtimeError("Argument to Buffer.from must be a string or an array of numbers")
+					return object.Nil{}
+				}
+			},
+		},
+		NativeFunction{
+			Name:  "BufferSlice",
+			Arity: 3,
+			Function: func(vm *VM, args ...object.Object) object.Object {
+				vm.assertArgumentToType(args[0], object.BUFFER, "Buffer.slice", 0)
+				vm.assertArgumentToType(args[1], object.NUMBER, "Buffer.slice", 1)
+				vm.assertArgumentToType(args[2], object.NUMBER, "Buffer.slice", 2)
+				buf := args[0].(object.Buffer)
+				start := int(args[1].(object.Number).Value)
+				end := int(args[2].(object.Number).Value)
+				if start < 0 || end > len(buf.Value) || start > end {
+					vm.runtimeError("Invalid slice indices")
+					return object.Nil{}
+				}
+				newBuf := make([]byte, end-start)
+				copy(newBuf, buf.Value[start:end])
+				return object.NewBuffer(newBuf)
+			},
+		},
+
+		NativeFunction{
 			Function: func(vm *VM, args ...object.Object) object.Object {
 				reader := bufio.NewReader(os.Stdin)
 				input, err := reader.ReadString('\n')

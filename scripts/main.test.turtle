@@ -126,9 +126,11 @@ if !fs.exists("tmp") {
     print "Temp directory exists";
 }
 
+let vidId = 0;
 server.post("/convert-to-audio", (req, res) => {
     let bytes = req.bytes();
-    let filename = fs.getwd() + "/tmp/" + now() + "-video.mp4";
+    vidId = vidId + 1;
+    let filename = fs.getwd() + "/tmp/" + now() + "-" + vidId + "-video.mp4";
     let f = fs.open(filename, "w");
     f.writeBytes(bytes);
     f.close();
@@ -157,26 +159,27 @@ server.post("/convert-to-audio", (req, res) => {
         let audioFile = fs.open(outputFile, "r");
 
         res.writeHeader("Content-Type", "audio/mp3");
-        res.writeHeader("Content-Length", audioFile.length());
-
-        let CHUNK_SIZE = 65536; // 64k, Idk, just landed on this
-        for let i = 0; i < audioFile.length() / CHUNK_SIZE; i = i + 1 {
-            let result = audioFile.read(math.min(CHUNK_SIZE, audioFile.length() - i * CHUNK_SIZE));
-            let chunk = result[0];
-            let err = result[1];
-            if err != nil {
-            print "Error reading file chunk: " + err;
-                break;
-            }
-            res.write(chunk);
+        let readResult = audioFile.readBytes(
+            audioFile.length()
+        );
+        if readResult[1] != nil {
+            print "Error reading audio file: " + readResult[1];
+            res.writeHeader("Content-Type", "application/json");
+            res.writeStatus(500);
+            res.write(json.stringify({ error: "Error processing video file" }));
+            res.end();
+            audioFile.close();
+            fs.remove(outputFile);
+            return;
         }
+        res.writeBytes(readResult[0]);
         res.end();
         audioFile.close();
         fs.remove(outputFile);
     };
 
     job.onError = (data) => {
-        print "t";
+        // print "t";
         // ffmpeg sometimes writes errors to stderr but still produces a valid output file
     };
 });

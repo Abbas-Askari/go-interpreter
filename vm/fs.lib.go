@@ -105,18 +105,34 @@ func getFileSystem() *object.Map {
 						Name:  "writeBytes",
 						Arity: 1,
 						Function: func(vm *VM, args ...object.Object) object.Object {
-							vm.assertArgumentToType(args[0], object.ARRAY, "write", 0)
-							elements := args[0].(object.Array).Value
-							data := make([]byte, len(elements))
-							for i, elem := range elements {
-								vm.assertArgumentToType(elem, object.NUMBER, "writeBytes", 0)
-								data[i] = byte(int(elem.(object.Number).Value))
-							}
+							vm.assertArgumentToType(args[0], object.BUFFER, "write", 0)
+							data := args[0].(object.Buffer).Value
 							_, err := file.Write(data)
 							if err != nil {
 								vm.runtimeError("Error writing to file: %s", err.Error())
 							}
 							return object.Nil{}
+						},
+					},
+					"readBytes": NativeFunction{
+						Name:  "readBytes",
+						Arity: 1,
+						Function: func(vm *VM, args ...object.Object) object.Object {
+							vm.assertArgumentToType(args[0], object.NUMBER, "readBytes", 0)
+							size := int(args[0].(object.Number).Value)
+							data := make([]byte, size)
+							n, err := file.Read(data)
+							var errObject object.Object = object.Nil{}
+							if err != nil {
+								// vm.runtimeError("Error reading file: %s", err.Error())
+								errObject = object.NewString(err.Error())
+							}
+							return object.NewArray(
+								[]object.Object{
+									object.NewBuffer(data[:n]),
+									errObject,
+								},
+							)
 						},
 					},
 					"close": NativeFunction{

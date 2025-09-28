@@ -38,6 +38,7 @@ func (b Array) Type() ObjectType {
 func (b Array) Add(o Object) Object {
 	arr, ok := o.(Array)
 	if !ok {
+		fmt.Println(b, o)
 		panic("Can only add Array to Array")
 	}
 	return NewArray(append(b.Value, arr.Value...))

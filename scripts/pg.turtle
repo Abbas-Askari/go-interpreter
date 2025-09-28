@@ -221,15 +221,15 @@ func connect(hostname, port, user, POSTGRES_PASSWORD, POSTGRES_DB, callback) {
                 }
                 if type == nil {
                     type = ascii.fromCharCode(stream[0]);
-                    stream = stream.slice(1, stream.length);
+                    // stream = stream.slice(1, stream.length);
                 }
                 if type != nil && msgLength == nil && stream.length >= 4 {
-                    msgLength = readInt32(stream.slice(0, 4));
-                    stream = stream.slice(4, stream.length);
+                    msgLength = readInt32(stream.slice(1, 5));
+                    // stream = stream.slice(4, stream.length);
                 }
                 if type != nil && msgLength != nil && stream.length >= msgLength - 4 {
-                    msgBody = stream.slice(0, msgLength - 4);
-                    stream = stream.slice(msgLength - 4, stream.length);
+                    msgBody = stream.slice(5, msgLength - 4 + 5);
+                    stream = stream.slice(5 + msgLength - 4, stream.length);
                     handleMessage(type, msgBody, msgLength);
                     type = nil;
                     msgLength = nil;
