@@ -54,7 +54,7 @@ let connection = pg.connect(POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, POSTGRE
         return;
     }
     db = pg;
-    seedDB();
+    // seedDB();
     print "Connected to Postgres";
 });
 

@@ -7,6 +7,7 @@ import (
 	"Abbas-Askari/interpreter-v2/object"
 	"Abbas-Askari/interpreter-v2/parser"
 	"Abbas-Askari/interpreter-v2/vm"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -116,7 +117,18 @@ func runFile(filename string, debug bool) *object.Map {
 }
 
 func main() {
-	filename := "/home/abbas/repos/interpreter-v2/scripts/main.test.turtle"
-	runFile(filename, false)
+	verbose := flag.Bool("v", false, "Enable verbose mode")
+	flag.Parse()
+
+	// After parsing, flag.Args() gives the remaining non-flag arguments
+	args := flag.Args()
+
+	if len(args) < 1 {
+		fmt.Println("Usage: go run main.go [filename] [-v]")
+		os.Exit(1)
+	}
+
+	filename := args[0]
+	runFile(filename, *verbose)
 	fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
 }

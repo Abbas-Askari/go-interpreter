@@ -102,6 +102,15 @@ func GetNativeFunctions() []object.Object {
 				return object.NewBuffer(newBuf)
 			},
 		},
+		NativeFunction{
+			Name:  "BufferToString",
+			Arity: 1,
+			Function: func(vm *VM, args ...object.Object) object.Object {
+				vm.assertArgumentToType(args[0], object.BUFFER, "Buffer.toString", 0)
+				buf := args[0].(object.Buffer)
+				return object.NewString(string(buf.Value))
+			},
+		},
 
 		NativeFunction{
 			Function: func(vm *VM, args ...object.Object) object.Object {

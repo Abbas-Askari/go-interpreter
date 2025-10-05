@@ -96,11 +96,12 @@ func NewSocketObject(conn net.Conn, vm *VM) object.Map {
 				}
 				data := make([]byte, n)
 				copy(data, buffer[:n])
-				arr := make([]object.Object, n)
-				for i := 0; i < n; i++ {
-					arr[i] = object.Number{float64(data[i])}
-				}
-				obj := object.NewArray(arr)
+				// arr := make([]object.Object, n)
+				// for i := 0; i < n; i++ {
+				// 	arr[i] = object.Number{float64(data[i])}
+				// }
+				// obj := object.NewArray(arr)
+				obj := object.NewBuffer(data)
 				vm.FireEvent(socket.Map["onData"].(object.Closure), obj)
 			}
 		}
