@@ -136,7 +136,7 @@ server.post("/convert-to-audio", (req, res) => {
     f.close();
     print "Saved uploaded video to " + filename;
 
-    let outputFile = fs.getwd() + "/tmp/" + now() + "-audio.mp3";
+    let outputFile = fs.getwd() + "/tmp/" + now() + "-" + vidId + "-audio.mp3";
 
     let job = os.exec(["ffmpeg", "-i", filename, outputFile]);
 

@@ -1,0 +1,148 @@
+package object
+
+import (
+	"fmt"
+	"math/rand"
+	"strconv"
+)
+
+func RandomEqual() Object {
+	randomNum := Number{Value: rand.Float64() * 1000}
+	randomStr := String{Value: "str_" + strconv.Itoa(rand.Intn(10000))}
+
+	t := []Object{
+		Boolean{Value: rand.Intn(2) == 1},
+		randomNum,
+		randomStr,
+		Nil{},
+		Map{Map: map[string]Object{}},
+		NewArray([]Object{}),
+	}
+
+	return t[rand.Intn(len(t))]
+}
+func Equal(left, right Object) Object {
+	if right.Type() != left.Type() {
+		return Boolean{Value: false}
+	}
+
+	if right.Type() == STRING {
+		return Boolean{Value: right.(String).Value == left.(String).Value}
+	}
+
+	if right.Type() == NUMBER {
+		return Boolean{Value: right.(Number).Value == left.(Number).Value}
+	}
+
+	if right.Type() == CLOSURE {
+		refA := right.(Closure).Function
+		refB := left.(Closure).Function
+		return Boolean{Value: &refA == &refB}
+	}
+
+	return Boolean{Value: right == left}
+}
+
+func Mod(left, right Object) (Object, error) {
+	if right.Type() != NUMBER || left.Type() != NUMBER {
+		return Nil{}, fmt.Errorf("cannot perform modulo on types %v and %v", left.Type(), right.Type())
+	}
+	rightNum := right.(Number)
+	leftNum := left.(Number)
+	if rightNum.Value == 0 {
+		return Nil{}, fmt.Errorf("modulo by zero")
+	}
+	return Number{Value: float64(int(leftNum.Value) % int(rightNum.Value))}, nil
+}
+
+func And(left, right Object) Object {
+	return Boolean{Value: right.GetTruthy().Value && left.GetTruthy().Value}
+}
+
+func Or(left, right Object) Object {
+	return Boolean{Value: right.GetTruthy().Value || left.GetTruthy().Value}
+}
+
+func NotEqual(left, right Object) Object {
+	return Boolean{Value: !Equal(right, left).(Boolean).Value}
+}
+
+func Greater(left, right Object) Object {
+	if right.Type() != left.Type() {
+		panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+	}
+
+	if right.Type() == NUMBER {
+		return Boolean{Value: right.(Number).Value > left.(Number).Value}
+	}
+
+	if right.Type() == STRING {
+		return Boolean{Value: right.(String).Value > left.(String).Value}
+	}
+
+	panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+}
+
+func Less(left, right Object) Object {
+	if right.Type() != left.Type() {
+		panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+	}
+
+	if right.Type() == NUMBER {
+		return Boolean{Value: right.(Number).Value < left.(Number).Value}
+	}
+
+	if right.Type() == STRING {
+		return Boolean{Value: right.(String).Value < left.(String).Value}
+	}
+
+	panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+}
+
+func GreaterOrEqual(left, right Object) Object {
+	if right.Type() != left.Type() {
+		panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+	}
+
+	if right.Type() == NUMBER {
+		return Boolean{Value: right.(Number).Value >= left.(Number).Value}
+	}
+
+	if right.Type() == STRING {
+		return Boolean{Value: right.(String).Value >= left.(String).Value}
+	}
+
+	panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+}
+
+func LessOrEqual(left, right Object) Object {
+	if right.Type() != left.Type() {
+		panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+	}
+
+	if right.Type() == NUMBER {
+		return Boolean{Value: right.(Number).Value <= left.(Number).Value}
+	}
+
+	if right.Type() == STRING {
+		return Boolean{Value: right.(String).Value <= left.(String).Value}
+	}
+
+	panic(fmt.Errorf("Cannot compare types %v and %v", right.Type(), left.Type()))
+}
+
+func Not(o Object) Object {
+	return Boolean{
+		Value: !o.GetTruthy().Value,
+	}
+}
+
+func Neg(o Object) Object {
+	if o.Type() != NUMBER {
+		panic(fmt.Errorf("Cannot negate %v, Only numbers can have unary minus", o))
+	}
+
+	return Number{
+		Value: -o.(Number).Value,
+	}
+}

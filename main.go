@@ -1,12 +1,11 @@
 package main
 
 import (
-	"Abbas-Askari/interpreter-v2/colors"
-	"Abbas-Askari/interpreter-v2/compiler"
-	"Abbas-Askari/interpreter-v2/lexer"
-	"Abbas-Askari/interpreter-v2/object"
-	"Abbas-Askari/interpreter-v2/parser"
-	"Abbas-Askari/interpreter-v2/vm"
+	"Abbas-Askari/interpreter-v2/internal/compiler"
+	"Abbas-Askari/interpreter-v2/internal/lexer"
+	"Abbas-Askari/interpreter-v2/internal/object"
+	"Abbas-Askari/interpreter-v2/internal/parser"
+	"Abbas-Askari/interpreter-v2/internal/vm"
 	"flag"
 	"fmt"
 	"os"
@@ -27,7 +26,7 @@ func runFile(filename string, debug bool) *object.Map {
 		fmt.Println(tokens)
 	}
 
-	p := parser.NewParser(tokens)
+	p := parser.NewParser(tokens, filename)
 	statements := p.Parse()
 	if debug {
 		fmt.Println("------------AST------------")
@@ -124,11 +123,14 @@ func main() {
 	args := flag.Args()
 
 	if len(args) < 1 {
-		fmt.Println("Usage: go run main.go [filename] [-v]")
+		fmt.Printf("Usage: %s [filename] [-v]\n", os.Args[0])
 		os.Exit(1)
 	}
 
 	filename := args[0]
+	if *verbose {
+		fmt.Println("Running in verbose mode")
+	}
 	runFile(filename, *verbose)
-	fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
+	// fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
 }
