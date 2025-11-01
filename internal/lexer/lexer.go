@@ -250,7 +250,7 @@ func Tokenize(input string) []token.Token {
 			continue
 		}
 
-		if c == ' ' || c == '\n' {
+		if c == ' ' || c == '\n' || c == '\t' || c == '\r' {
 			i++
 			if c == '\n' {
 				line++

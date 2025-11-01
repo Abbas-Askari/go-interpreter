@@ -75,6 +75,9 @@ func (p *Parser) Declaration() Declaration {
 		p.consume(token.LBRACE, "Expected '{' after argument list")
 		declarations := []Declaration{}
 		for !p.consumeIfExists(token.RBRACE) {
+			if p.index >= len(p.tokens) {
+				p.consume(token.RBRACE, "Expected '}' to close function body")
+			}
 			declarations = append(declarations, p.Declaration())
 		}
 		// if p.index == len(p.tokens) &&
@@ -174,6 +177,9 @@ func (p *Parser) Statement() Statement {
 func (p *Parser) blockStatement() BlockStatement {
 	declarations := []Declaration{}
 	for !p.consumeIfExists(token.RBRACE) {
+		if p.index >= len(p.tokens) {
+			p.consume(token.RBRACE, "Expected '}' to close function body")
+		}
 		declarations = append(declarations, p.Declaration())
 	}
 	return BlockStatement{

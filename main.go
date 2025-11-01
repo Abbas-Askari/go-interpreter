@@ -10,11 +10,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 )
 
 // TODO: Clean this ugly main file
 
-func runFile(filename string, debug bool) *object.Map {
+func runFile(filename string, debug bool, safemode bool) *object.Map {
 	fileContent, err := os.ReadFile(filename)
 	if err != nil {
 		panic(fmt.Errorf("File not found!\nUsage: run [filepath]"))
@@ -35,6 +36,13 @@ func runFile(filename string, debug bool) *object.Map {
 	}
 
 	lib := vm.GetLibraryMaps()
+	unsafeLibs := []string{
+		"os",
+		"fs",
+		"net",
+		"http",
+		"tcp",
+	}
 	for _, stmt := range statements {
 		if imp, ok := stmt.(*parser.ImportDeclaration); ok {
 			if debug {
@@ -42,6 +50,9 @@ func runFile(filename string, debug bool) *object.Map {
 			}
 			module := lib[imp.Module.Literal]
 			if module != nil {
+				if safemode && slices.Contains(unsafeLibs, imp.Module.Literal) {
+					panic(fmt.Sprintf("Cannot import unsafe module '%s' in safe mode", imp.Module.Literal))
+				}
 				imp.Exports = module
 				continue
 			}
@@ -64,7 +75,7 @@ func runFile(filename string, debug bool) *object.Map {
 			if modulePath == "" {
 				panic(fmt.Sprintf("Module not found: %s", modulePath))
 			}
-			imp.Exports = runFile(modulePath, debug)
+			imp.Exports = runFile(modulePath, debug, safemode)
 		}
 	}
 
@@ -103,7 +114,7 @@ func runFile(filename string, debug bool) *object.Map {
 		}
 	}
 
-	vm := vm.NewVM(function, constants, globals)
+	vm := vm.NewVM(function, constants, globals, safemode)
 	if debug {
 		fmt.Println("----------Output----------")
 	}
@@ -117,6 +128,7 @@ func runFile(filename string, debug bool) *object.Map {
 
 func main() {
 	verbose := flag.Bool("v", false, "Enable verbose mode")
+	safemode := flag.Bool("s", false, "Enable safe mode")
 	flag.Parse()
 
 	// After parsing, flag.Args() gives the remaining non-flag arguments
@@ -131,6 +143,6 @@ func main() {
 	if *verbose {
 		fmt.Println("Running in verbose mode")
 	}
-	runFile(filename, *verbose)
+	runFile(filename, *verbose, *safemode)
 	// fmt.Println(colors.Colorize("Program finished successfully!", colors.GREEN))
 }

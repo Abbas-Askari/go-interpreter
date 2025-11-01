@@ -55,6 +55,17 @@ func NewCommandObject(commandArray object.Array, vm *VM) object.Map {
 		Name:  "write",
 	}
 
+	command.Map["kill"] = NativeFunction{
+		Function: func(vm *VM, args ...object.Object) object.Object {
+			if err := cmd.Process.Kill(); err != nil {
+				vm.FireEvent(command.Map["onError"].(object.Closure), object.NewString(err.Error()))
+			}
+			return object.Nil{}
+		},
+		Arity: 0,
+		Name:  "kill",
+	}
+
 	readerRoutine := func(reader io.ReadCloser, functionName string) {
 		buf := make([]byte, 1024)
 		for {

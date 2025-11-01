@@ -52,7 +52,7 @@ func GetNativeFunctions() []object.Object {
 		NativeFunction{
 			Function: func(vm *VM, args ...object.Object) object.Object {
 				// Return current time in seconds
-				x := object.Number{Value: float64(time.Now().Unix())}
+				x := object.Number{Value: float64(time.Now().UnixMilli())}
 				return x
 			},
 			Arity: 0,

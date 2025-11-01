@@ -38,9 +38,11 @@ type VM struct {
 	callbackQueue []QueueElement
 	cond          *sync.Cond
 	mu            sync.Mutex
+
+	safemode bool
 }
 
-func NewVM(function object.Function, constants []object.Object, globals []object.Object) *VM {
+func NewVM(function object.Function, constants []object.Object, globals []object.Object, safemode bool) *VM {
 	stack := make([]object.Object, 0, STACK_SIZE)
 
 	frames := []CallFrame{
@@ -54,6 +56,7 @@ func NewVM(function object.Function, constants []object.Object, globals []object
 		constants: constants,
 		stack:     stack,
 		Globals:   globals,
+		safemode:  safemode,
 
 		callbackQueue: []QueueElement{},
 	}
