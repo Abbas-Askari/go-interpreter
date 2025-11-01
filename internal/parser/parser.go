@@ -178,7 +178,7 @@ func (p *Parser) blockStatement() BlockStatement {
 	declarations := []Declaration{}
 	for !p.consumeIfExists(token.RBRACE) {
 		if p.index >= len(p.tokens) {
-			p.consume(token.RBRACE, "Expected '}' to close function body")
+			p.consume(token.RBRACE, "Expected '}' to close block body")
 		}
 		declarations = append(declarations, p.Declaration())
 	}
