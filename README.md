@@ -276,13 +276,39 @@ The Go-powered VM handles scheduling, async I/O via goroutines, and moves concur
 
 Turtle performs competitively against Go, Node.js, and Python across HTTP forwarding, database operations, and audio processing workloads. The website includes interactive benchmark charts comparing average response times across different load sizes.
 
-**Test categories:**
-- **Forward Requests** — HTTP proxy with caching and JSON parsing
-- **Database Operations** — PostgreSQL queries via the pure-Turtle PG driver
-- **Audio Operations** — File I/O and processing workloads
-- **Combined** — Mixed workload benchmark
+Average response times in milliseconds (lower is better). Values are averages across 5 runs.
 
-See the [full benchmark results](https://turtle-interpreter.vercel.app/#benchmarks).
+#### Forward Requests — HTTP proxy with caching and JSON parsing
+
+| Requests | Go | Node.js | Python | **Turtle** |
+|----------|---:|--------:|-------:|-----------:|
+| 500      | 137 | 244 | 233 | **124** |
+| 1,000    | 133 | 182 | 320 | **130** |
+| 10,000   | 1,636 | 6,674 | 8,149 | **1,489** |
+
+#### Database Operations — PostgreSQL queries
+
+| Requests | Go | Node.js | Python | **Turtle** |
+|----------|---:|--------:|-------:|-----------:|
+| 500      | **138** | **132** | 143 | 189 |
+| 1,000    | **297** | 231 | 264 | 550 |
+| 5,000    | **1,608** | 3,323 | 3,501 | 9,042 |
+
+#### Audio Operations — File I/O and processing
+
+| Files | Go | Node.js | Python | **Turtle** |
+|-------|---:|--------:|-------:|-----------:|
+| 4     | 4,898 | 4,719 | **4,551** | 5,558 |
+| 8     | 7,222 | 7,364 | 7,653 | **7,262** |
+| 12    | **9,466** | 9,943 | 9,663 | 10,316 |
+
+#### Combined Benchmark
+
+| | Go | Node.js | Python | **Turtle** |
+|-|---:|--------:|-------:|-----------:|
+| Avg | **6,227** | 6,289 | 6,393 | 6,367 |
+
+See the [interactive benchmark charts](https://turtle-interpreter.vercel.app/#benchmarks) for more detail.
 
 ## Try Online
 
