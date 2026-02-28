@@ -136,6 +136,29 @@ dog.speak(); // Dog says Woof
 ### Arrays
 
 ```javascript
+Array.push = (x) => {
+    return this + [x];
+};
+
+Array.map = (fn) => {
+  print fn;
+  let res = [];
+  for let i = 0; i < this.length; i = i + 1 {
+    res = res.push(fn(this[i], i));
+  }
+  return res;
+};
+
+Array.filter = (fn) => {
+  let res = [];
+  for let i = 0; i < this.length; i = i + 1 {
+    if fn(this[i], i) {
+      res = res.push(this[i]);
+    }
+  }
+  return res;
+};
+
 let nums = [1, 2, 3, 4, 5];
 
 let doubled = nums.map((x, _) => x * 2);
