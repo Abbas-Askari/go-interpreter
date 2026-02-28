@@ -3,8 +3,8 @@
   <p align="center">Fast, reliable, and delightfully simple programming language for modern development.</p>
   <p align="center">
     <a href="https://turtle-interpreter.vercel.app">Website</a> &middot;
-    <a href="https://turtle-interpreter.vercel.app">Online Playground</a> &middot;
-    <a href="https://turtle-interpreter.vercel.app">Benchmarks</a> &middot;
+    <a href="https://turtle-interpreter.vercel.app/#playground">Online Playground</a> &middot;
+    <a href="https://turtle-interpreter.vercel.app/#benchmarks">Benchmarks</a> &middot;
     <a href="https://github.com/Abbas-Askari/turtle-website">Website Source</a>
   </p>
 </p>
@@ -282,11 +282,11 @@ Turtle performs competitively against Go, Node.js, and Python across HTTP forwar
 - **Audio Operations** — File I/O and processing workloads
 - **Combined** — Mixed workload benchmark
 
-See the [full benchmark results](https://turtle-interpreter.vercel.app).
+See the [full benchmark results](https://turtle-interpreter.vercel.app/#benchmarks).
 
 ## Try Online
 
-No installation needed — write and run Turtle code directly in the browser at the [online playground](https://turtle-interpreter.vercel.app). The playground runs in safe mode on an AWS Lambda function powered by Turtle itself.
+No installation needed — write and run Turtle code directly in the browser at the [online playground](https://turtle-interpreter.vercel.app/#playground). The playground runs in safe mode on an AWS Lambda function powered by Turtle itself.
 
 ## License
 
