@@ -225,7 +225,7 @@ print data;
 
 ### TCP & PostgreSQL
 
-Turtle's standard library is powerful enough to implement a full PostgreSQL driver over raw TCP — no package manager needed:
+Turtle's standard library is powerful enough to implement a [full PostgreSQL driver](scripts/pg.turtle) over raw TCP — no package manager needed:
 
 ```javascript
 import "tcp";
